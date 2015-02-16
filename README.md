@@ -32,7 +32,8 @@ Please use the "issues" page on Github!
 - Individual citizen permissions for invite, expel, etc...
 - Citizens group permission: you can trust all your citizens on a plot with a single command
 - Citizens can add people to their own plot (they can use /trust command)
-- Citizen chat (admin tools included (5))
+- City chat (admin tools included (5))
+- ... and more!
 
 1. if you just want to protect your base, it's not necessary to make a city, but just a GP claim!
 2. even if you're part of a city, you can still make GP'sclaim out of the city
