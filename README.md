@@ -48,9 +48,9 @@ Please use the "issues" page on Github!
 - Tab completer! (everyone hates players with long and hard to type names... xD)
 
 ##Commands:
-/city /c - main city command (/c help for the help)
-/citychat /cc - use the city chat
-/cityadmin /ca - use the city admin commands
+- /city /c - main city command (/c help for the help)
+- /citychat /cc - use the city chat
+- /cityadmin /ca - use the city admin commands
 
 ##Requirements
 This plugin requires GriefPreventionPlus. http://github.com/KaiKikuchi/GriefPreventionPlus
