@@ -1,0 +1,58 @@
+name: GPPCities
+main: net.kaikk.mc.gppcities.GPPCities
+version: 1.0
+author: KaiNoMood
+depend: [GriefPreventionPlus]
+
+commands:
+   city:
+      description: Create, remove, and manage cities
+      aliases: c
+      permission: gppc.city
+      permission-message: <permission> is required to execute this command.
+   citychat:
+      description: City chat
+      aliases: cc
+      permission: gppc.citychat
+      permission-message: <permission> is required to execute this command.
+   cityadmin:
+      description: City admin commands
+      aliases: ca
+      permission: gppc.cityadmin
+      permission-message: <permission> is required to execute this command.
+
+permissions:
+    gppc.*:
+        description: Gives access to all /city commands (administrative too)
+        children:
+            gppc.city.*: true
+            gppc.cityadmin.*: true
+    gppc.city.*:
+        description: Gives access to all /city users commands
+        children:
+            gppc.city: true
+            gppc.city.new: true
+            gppc.city.spawn: true
+            gppc.city.spawn.any: true
+    gppc.city:
+        description: Permits to use any gppcities command
+        default: true
+    gppc.city.new:
+        description: Permits to create a city
+        default: true
+    gppc.city.spawn:
+        description: Permits to use spawn command to teleport to joined city's spawn
+        default: true
+    gppc.city.spawn.any:
+        description: Permits to use spawn command to teleport to any city's spawn
+        default: true
+    gppc.citychat:
+        description: Permits to use the city chat
+        default: true
+    gppc.cityadmin.*:
+        description: Gives access to all /city administrative commands
+        children:
+            gppc.cityadmin: true
+    gppc.cityadmin:
+        description: Permits to manage others cities
+        default: op
