@@ -9,7 +9,8 @@ At this moment, there is no MyTown for Minecraft 1.7.10 and greater. In my opini
 With GPP-Cities you can have both the powerful and easy to use Grief Prevention and a cool and customizable cities plugin!
 
 Unfortunately, Grief Prevention has some API limitation that made impossible to implements lots of important features.
-Grief Prevention has some performance issue too. That's why I decided to fork Grief Prevention and make GriefPreventionPlus
+Grief Prevention has some performance issue too. That's why I decided to fork Grief Prevention and make GriefPreventionPlus.
+
 GriefPreventionPlus is needed to make GriefPreventionPlus-Cities work!
 You can find GriefPreventionPlus at this link: http://github.com/KaiKikuchi/GriefPreventionPlus
 
