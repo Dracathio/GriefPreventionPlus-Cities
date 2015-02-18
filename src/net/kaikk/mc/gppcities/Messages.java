@@ -98,7 +98,7 @@ public enum Messages {
 		messages.put(Messages.WrongCityName, "&cWrong city name.");
 		messages.put(Messages.WrongCityNameCS, "&cWrong city name (it's case-sensitive).");
 		messages.put(Messages.WrongCommand, "&cWrong command.");
-		messages.put(Messages.YouAlreadyOnAnotherCity, "&cYou're a member of another cit.y");
+		messages.put(Messages.YouAlreadyOnAnotherCity, "&cYou're a member of another city.");
 		messages.put(Messages.YouCantRunCommandOnACity, "&cYou can't run this command on a city.");
 		messages.put(Messages.YouLeftCity, "&aYou left &b{0}.");
 		messages.put(Messages.YouNotACitizenHere, "&cYou're not a citizen here.");
