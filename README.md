@@ -48,6 +48,9 @@ Please use the "issues" page on Github!
 - Get claimable blocks for every new citizen
 - Tab completer! (everyone hates players with long and hard to type names... xD)
 
+## Download
+All builds for my plugins can be found at this link: http://kaikk.net/mc/
+
 ##Commands:
 - /city /c - main city command (/c help for the help)
 - /citychat /cc - use the city chat
