@@ -35,6 +35,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import net.kaikk.mc.gpp.Claim;
+import net.kaikk.mc.gpp.ClaimPermission;
 import net.kaikk.mc.gpp.GriefPreventionPlus;
 
 class City {
@@ -137,9 +138,21 @@ class City {
 			e.printStackTrace(); // this should never happen: city claims are always top-claims
 			return;
 		}
-		this.getMayor().setPerm(CitizenPermission.Assistant); // Make the current mayor an assistant
-		citizen.setPerm(CitizenPermission.Mayor);
-		this.sendMessageToAllCitizens(Messages.NewMayor.get());
+		
+		try {
+			GriefPreventionPlus.instance.dataStore.changeClaimOwner(this.claim, newMayor);
+			this.claim.setPermission(this.getMayor().id, ClaimPermission.BUILD);
+			this.claim.setPermission(this.getMayor().id, ClaimPermission.MANAGE);
+			
+			this.getMayor().setPerm(CitizenPermission.Assistant); // Make the current mayor an assistant
+			citizen.setPerm(CitizenPermission.Mayor);
+			this.sendMessageToAllCitizens(Messages.NewMayor.get(citizen.getDisplayName(), this.name));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+
 	}
 	
 	String info() {
@@ -227,6 +240,30 @@ class City {
 	
 	boolean checkPerm(int perm) {
 		return (this.defaultPerms&perm)!=0;
+	}
+	
+	String permsToString() {
+		String perms = "";
+		if (checkPerm(CitizenPermission.Assistant)) {
+			return "A";
+		}
+		if (checkPerm(CitizenPermission.Invite)) {
+			perms+="I";
+		}
+		if (checkPerm(CitizenPermission.Expel)) {
+			perms+="E";
+		}
+		if (checkPerm(CitizenPermission.Motd)) {
+			perms+="M";
+		}
+		if (checkPerm(CitizenPermission.Plot)) {
+			perms+="P";
+		}
+		if (checkPerm(CitizenPermission.Spawn)) {
+			perms+="S";
+		}
+
+		return perms;
 	}
 	
 	void dbUpdatePerm() {
@@ -329,13 +366,10 @@ class City {
 		for (Citizen citizen : this.citizens.values()) {
 			player=GPPCities.gppc.getServer().getOfflinePlayer(citizen.id);
 			if (player.isOnline()) {
-				onList[i]=player.getPlayer().getDisplayName();
-				if (onList[i]==null) {
-					onList[i]=player.getName();
-				}
+				onList[i]=(citizen.checkPerm(CitizenPermission.Assistant.perm|CitizenPermission.Mayor.perm) ? "*" : "")+player.getPlayer().getDisplayName();
 				i++;
 			} else {
-				offList[j]=player.getName();
+				offList[j]=(citizen.checkPerm(CitizenPermission.Assistant.perm|CitizenPermission.Mayor.perm) ? "*" : "")+player.getName();
 				j++;
 			}
 		}
@@ -412,10 +446,9 @@ class City {
 	synchronized boolean assignPlot(Claim claim, Citizen citizen) {
 		Plot plot = this.getPlot(claim);
 		if (plot == null) {
-			// il plot non esiste ancora, crealo!
 			plot = this.newPlot(claim);
 			if (plot == null) {
-				return false; // si è verificato un'errore durante la creazione del plot
+				return false;
 			}
 		}
 		
@@ -423,7 +456,7 @@ class City {
 			GPPCities.gppc.ds.dbCheck();
 			Statement statement = GPPCities.gppc.ds.db.createStatement();
 
-			statement.executeUpdate("UPDATE gppc_plots SET citizen = "+DataStore.UUIDtoHexString(citizen.id)+", motd = \"\", assignedOn = NOW(), isAutoClaimable = 0 WHERE id = "+plot.id+";");
+			statement.executeUpdate("UPDATE gppc_plots SET citizen = "+DataStore.UUIDtoHexString(citizen.id)+", motd = \"\", assignedOn = NOW(), isTakeable = 0 WHERE id = "+plot.id+";");
 			
 			this.plots.get(plot.id).assign(citizen);
 			

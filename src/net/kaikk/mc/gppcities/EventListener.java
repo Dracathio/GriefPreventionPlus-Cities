@@ -77,7 +77,7 @@ public class EventListener implements Listener {
 					Plot plot = city.getPlot(claim);
 					if (plot!=null) {
 						if (plot.citizen != null) {
-							event.getPlayer().sendMessage(Messages.YouOnPlot.get(GPPCities.gppc.getServer().getPlayer(plot.citizen.id).getDisplayName()));
+							event.getPlayer().sendMessage(Messages.YouOnPlot.get(plot.citizen.getDisplayName()));
 						}
 						if (!plot.motd.isEmpty()) {
 							event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a"+plot.motd));

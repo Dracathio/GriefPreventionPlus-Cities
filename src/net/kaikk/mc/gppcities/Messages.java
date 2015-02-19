@@ -33,18 +33,19 @@ public enum Messages {
 	CityInvitationHasBeenAccepted, CityInvitationHasBeenRejected, CityInvitationNoPending, CityInvitationReceived, CityInvitationRejected,
 	CityInvitationSent, CityNotExists, CitySpawnInvalid, CitySpawnMissing, CitySpawnSet, ClaimAlreadyACity, InviteNotAllowed, JoinableList,
 	MotdHasBeenSet, MotdOut, MotdRes, MotdSet, NewCity, NoCities, NoPermission, NotAuthorized, PlayerAlreadyOnAnotherCity, PlayerIsNotACitizen,
-	PlayerJoinedYourCity, PlayerLeftCity, PlayerOfflineOrWrongName, PlotAssigned, PlotAutoAssignNotAllowed, PlotAutoAssignYouHaveAPlotAlready,
+	PlayerJoinedYourCity, PlayerLeftCity, PlayerOfflineOrWrongName, PlotAssigned, PlotTakeNotAllowed, PlotTakeYouHaveAPlotAlready,
 	PlotCreated, PlotDeleted, PlotMotdEdited, PlotUnassigned, StandOnPlotOrSubClaim, ThisCityNotExists, WelcomeBackTo, WelcomeTo,
 	WrongCitizenName, WrongCityName, WrongCityNameCS, WrongCommand, YouAlreadyOnAnotherCity, YouCantRunCommandOnACity, YouLeftCity,
 	YouNotACitizenHere, YouNotCitizen, YouNotInACity, YouNotOnAClaim, YouOnClaim, YouOnPlot, YouOnWilderness, YouveBeenExpelled,
 	
 	CitizensList, CitizensListFormat, CitizenInfo, ClaimTooSmall, YouGotAPlot, YouLostAPlot, CitizenPermissions, CityInfo, YouJoinedCity,
-	YouAreBanned, PlayerIsBanned, NewMayor, CityChatFormat, CityNameInvalid, CitySameNameExists, CityRenamed, CityChatOn, CityChatOff;
+	YouAreBanned, PlayerIsBanned, NewMayor, CityChatFormat, CityNameInvalid, CitySameNameExists, CityRenamed, CityChatOn, CityChatOff,
+	TakeableOn, TakeableOff, NoJoinableCities, PlayerBannedConfirm, PlayerUnbannedConfirm, PlotInfo, MayorCannotLeave;
 
 	static private HashMap<Messages, String> messages = new HashMap<Messages, String>();
 	final static String messagesFilePath = "plugins" + File.separator + "GriefPreventionPlus-Cities" + File.separator + "messages.yml";
 	
-	static void load() {
+	static void defaults() {
 		messages.put(Messages.CantRunCommandYouHaveCity, "&cYou can't run this command. Your claim at &b(x: {0}, z: {1}) &cis a city!");
 		messages.put(Messages.CitiesList, "&aCities list:");
 		messages.put(Messages.CitiesListFormat, "{0} [&e{1}&f]");
@@ -57,10 +58,10 @@ public enum Messages {
 		messages.put(Messages.CityInvitationAcceptOrReject, "&aType /c accept to accept; otherwise /c reject.");
 		messages.put(Messages.CityInvitationAccepted, "&aYou accepted the invitation.");
 		messages.put(Messages.CityInvitationExpiresOn, "&aThis player already recieved an invitation, it expires in: {0} seconds.");
-		messages.put(Messages.CityInvitationHasBeenAccepted, "&aYour invitation to &b{0} &ahas been &baccepted.");
-		messages.put(Messages.CityInvitationHasBeenRejected, "&aYour invitation to &b{0} &ahas been &crejected.");
+		messages.put(Messages.CityInvitationHasBeenAccepted, "&aYour invitation to &b{0} &ahas been &baccepted&a.");
+		messages.put(Messages.CityInvitationHasBeenRejected, "&aYour invitation to &b{0} &ahas been &crejected&a.");
 		messages.put(Messages.CityInvitationNoPending, "&cYou do not have a pending invitation.");
-		messages.put(Messages.CityInvitationReceived, "&aYou received a city invitation from &b{0} &ato join &b{1}.");
+		messages.put(Messages.CityInvitationReceived, "&aYou received a city invitation from &b{0} &ato join &b{1}&a.");
 		messages.put(Messages.CityInvitationRejected, "&aYou rejected the invitation.");
 		messages.put(Messages.CityInvitationSent, "&aCity invitation sent to &b{0}.");
 		messages.put(Messages.CityNotExists, "&cThe city &b{0} &cdoes not exist.");
@@ -74,8 +75,9 @@ public enum Messages {
 		messages.put(Messages.MotdOut, "&aOuters motd: &b{0}");
 		messages.put(Messages.MotdRes, "&aResidents motd: &b{0}");
 		messages.put(Messages.MotdSet, "&aMotd set.");
-		messages.put(Messages.NewCity, "&a{0} has just founded a new city called &b{1}.");
+		messages.put(Messages.NewCity, "&a{0} has just founded a new city called &b{1}&a.");
 		messages.put(Messages.NoCities, "&aThere's no city! Be the first! Make a claim, and type /city new CityName.");
+		messages.put(Messages.NoJoinableCities, "&aThere's no joinable city! Ask for an invitation, or make a new city!");
 		messages.put(Messages.NoPermission, "&cYou don't have permission to use this command.");
 		messages.put(Messages.NotAuthorized, "&cYou're not authorized.");
 		messages.put(Messages.PlayerAlreadyOnAnotherCity, "&cThis player is already a member of another city.");
@@ -84,13 +86,13 @@ public enum Messages {
 		messages.put(Messages.PlayerLeftCity, "&b{0} &aleft the city.");
 		messages.put(Messages.PlayerOfflineOrWrongName, "&cThis player is offline or the player name is wrong.");
 		messages.put(Messages.PlotAssigned, "&aPlot assigned.");
-		messages.put(Messages.PlotAutoAssignNotAllowed, "&cAuto-assign is not allowed on this claim.");
-		messages.put(Messages.PlotAutoAssignYouHaveAPlotAlready, "&cYou can't assign yourself a plot if you have an assigned plot already.");
+		messages.put(Messages.PlotTakeNotAllowed, "&cYou can take this plot.");
+		messages.put(Messages.PlotTakeYouHaveAPlotAlready, "&cYou can't take another plot if you have an assigned plot already.");
 		messages.put(Messages.PlotCreated, "&aNew plot created.");
 		messages.put(Messages.PlotDeleted, "&aPlot deleted.");
 		messages.put(Messages.PlotMotdEdited, "&aPlot motd edited.");
 		messages.put(Messages.PlotUnassigned, "&aPlot unassigned.");
-		messages.put(Messages.StandOnPlotOrSubClaim, "&cYou have to stand on your city's plot/subclaim. Use /subdivideclaims.");
+		messages.put(Messages.StandOnPlotOrSubClaim, "&cYou have to stand on a subdivision. Use /subdivideclaims.");
 		messages.put(Messages.ThisCityNotExists, "&cThis city doesn't exist.");
 		messages.put(Messages.WelcomeBackTo, "&2Welcome back to &a{0}.");
 		messages.put(Messages.WelcomeTo, "&2Welcome to &a{0}.");
@@ -127,14 +129,27 @@ public enum Messages {
 		messages.put(Messages.YouAreBanned, "&cYou are banned from {0}!");
 		messages.put(Messages.PlayerIsBanned, "&cThis player was banned from {0}!");
 		messages.put(Messages.NewMayor, "&a{0} is {1}'s new mayor!");
-		messages.put(Messages.CityChatFormat, "&e[&f{0}&e] &f<{1}> {2}.");
+		messages.put(Messages.CityChatFormat, "&e[&f{0}&e] &f<{1}> {2}");
 		messages.put(Messages.CityNameInvalid, "&cCity name invalid.");
 		messages.put(Messages.ClaimAlreadyACity, "&cThis claim is already a city.");
 		messages.put(Messages.CitySameNameExists, "&cA city with the same name already exists.");
 		messages.put(Messages.CityRenamed, "&aCity renamed.");
-		messages.put(Messages.CityChatOff, "&aFrom now your messages are sent to the public chat.");
 		messages.put(Messages.CityChatOn, "&aFrom now your messages are sent to the city chat.");
-
+		messages.put(Messages.CityChatOff, "&aFrom now your messages are sent to the public chat.");
+		messages.put(Messages.TakeableOn, "&aNew citizen can take this plot on their own.");
+		messages.put(Messages.TakeableOff, "&aNew citizen can't take this plot on their own.");
+		messages.put(Messages.PlayerBannedConfirm, "&a{0} was banned from {1} and can't autojoin or be invited.");
+		messages.put(Messages.PlayerUnbannedConfirm, "&a{0} was unbanned from {1}.");
+		messages.put(Messages.PlotInfo, "&bPlot ID: {1}\n"+
+				"&aAssigned on: {2} | Assigned to: {3}\n"+
+				"&aTakeable: {4}");
+		messages.put(Messages.MayorCannotLeave, "&aYou can't leave your city. Do /c mayor [CitizenName] to change the mayor.");
+	}
+	
+	static void load() {
+		if (messages.isEmpty()) {
+			defaults();
+		}
 		
 		FileConfiguration messagesFile = YamlConfiguration.loadConfiguration(new File(Messages.messagesFilePath));
 		

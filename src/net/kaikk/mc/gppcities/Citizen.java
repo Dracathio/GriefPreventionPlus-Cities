@@ -50,11 +50,11 @@ class Citizen {
 	int getLastPlayedDays() {
 		return (int) ((System.currentTimeMillis()-this.getLastPlayed())/86400000);
 	}
-	
+	/** returns citizen's name */
 	String getName() {
 		return GPPCities.gppc.getServer().getOfflinePlayer(this.id).getName();
 	}
-	
+	/** returns citizen's display name, or the name if he's not online */
 	String getDisplayName() {
 		OfflinePlayer citizen = GPPCities.gppc.getServer().getOfflinePlayer(this.id);
 		if (citizen.isOnline()) {
@@ -121,7 +121,11 @@ class Citizen {
 	}
 	
 	void setPerm(int perm) {
-		this.perms=this.perms|perm;
+		if (perm < 3) {
+			this.perms=perm;
+		} else {
+			this.perms=this.perms|perm;
+		}
 		this.dbUpdatePerm();
 	}
 	

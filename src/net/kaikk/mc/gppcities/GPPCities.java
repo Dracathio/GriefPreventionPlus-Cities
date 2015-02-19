@@ -40,13 +40,7 @@ public class GPPCities extends JavaPlugin{
 		long loadingTime = System.currentTimeMillis();
 		gppc=this;
 		
-		/* TODO
-		 * nations
-		 * taxes (soft-depend, configurable: default new city price, mayor can set join price and m^2 price, if not enough money disable city functionalities)
-		 * get claimable blocks for every new citizen
-		 * console commands
-		 * tabcompleter for all commands
-		 */
+		
 		this.config = new Config();
 		// Inizialize database
 		try {

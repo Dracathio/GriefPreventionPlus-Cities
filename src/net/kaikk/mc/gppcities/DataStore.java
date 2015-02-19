@@ -38,7 +38,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 class DataStore {
-	GPPCities gpp;
+	GPPCities gppc;
 	
 	private String dbUrl;
 	private String username;
@@ -52,7 +52,7 @@ class DataStore {
 	protected ArrayList<UUID> cityChatSpy = new ArrayList<UUID>();
 	
 	DataStore(GPPCities gpp, String url, String username, String password) throws Exception {
-		this.gpp=gpp;
+		this.gppc=gpp;
 		this.dbUrl = url;
 		this.username = username;
 		this.password = password;
@@ -98,7 +98,7 @@ class DataStore {
 									"citizen binary(16) DEFAULT NULL COMMENT \"uuid\","+
 									"motd varchar(100) NOT NULL DEFAULT \"\","+
 									"assignedOn timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"+
-									"isAutoClaimable tinyint(1) NOT NULL DEFAULT \"0\","+
+									"isTakeable tinyint(1) NOT NULL DEFAULT \"0\","+
 									"PRIMARY KEY (id)"+
 									");");
 				
@@ -174,7 +174,7 @@ class DataStore {
 			gpp.log("Loading plots...");
 
 			Citizen citizen;
-			results = statement.executeQuery("SELECT id, cid, citizen, motd, assignedOn, isAutoClaimable FROM gppc_plots;");
+			results = statement.executeQuery("SELECT id, cid, citizen, motd, assignedOn, isTakeable FROM gppc_plots;");
 			while (results.next()) {
 				city = this.citiesMap.get(results.getInt(2));
 				
@@ -260,10 +260,10 @@ class DataStore {
 			
 			this.citiesMap.put(claim.getID(), new City(claim, name, mayor, loc));
 			
-			gpp.getServer().broadcastMessage(Messages.NewCity.get(gpp.getServer().getPlayer(mayor).getDisplayName(), name));
+			//gppc.getServer().broadcastMessage(Messages.NewCity.get(gppc.getServer().getPlayer(mayor).getDisplayName(), name));
 		} catch(SQLException e) {
 			e.getStackTrace();
-			log(Level.SEVERE, "Unable to create new city for claim id "+claim.getID()+" named '"+name+"' created by "+gpp.getServer().getPlayer(mayor).getName());
+			log(Level.SEVERE, "Unable to create new city for claim id "+claim.getID()+" named '"+name+"' created by "+gppc.getServer().getPlayer(mayor).getName());
 			log(Level.SEVERE, e.getMessage());
 			return "An error occurred with the database.";
 		}
@@ -284,7 +284,7 @@ class DataStore {
 			claim.dropPermission("[gpc.c"+claim.getID()+"]");
 
 			this.citiesMap.remove(id);
-			gpp.getServer().broadcastMessage(Messages.CityHasBeenDisbanded.get(this.citiesMap.get(id).name));
+			gppc.getServer().broadcastMessage(Messages.CityHasBeenDisbanded.get(this.citiesMap.get(id).name));
 		} catch(SQLException e) {
 			e.getStackTrace();
 			log(Level.SEVERE, "Unable to delete city id "+id);
@@ -393,7 +393,7 @@ class DataStore {
 	
 	void cityChatSpy(String message) {
 		for (UUID uuid : this.cityChatSpy) {
-			Player spy = gpp.getServer().getPlayer(uuid);
+			Player spy = gppc.getServer().getPlayer(uuid);
 			if (spy!=null) {
 				spy.sendMessage(message);
 			}
@@ -418,7 +418,7 @@ class DataStore {
 	
 	/** log into console */
 	private void log(Level level, String msg) {
-		gpp.getLogger().log(level, msg);
+		gppc.getLogger().log(level, msg);
 	}
 
 	static Player getOnlinePlayer(String name) {

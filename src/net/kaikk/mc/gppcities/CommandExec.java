@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -108,7 +109,7 @@ public class CommandExec implements CommandExecutor {
 								player.sendMessage("- setspawn");
 							}
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Plot.perm)) {
-								player.sendMessage("- plot [new|assign|delete|autoclaim|motd]");
+								player.sendMessage("- plot [info|new|assign|delete|autoclaim|motd]");
 							}
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Motd.perm)) {
 								player.sendMessage("- motd [res|out|current]");
@@ -120,6 +121,8 @@ public class CommandExec implements CommandExecutor {
 								player.sendMessage("- expel [citizen name]");
 							}
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm)) {
+								player.sendMessage("- ban [citizen name] - ban the player from the city");
+								player.sendMessage("- unban [citizen name] - unban the player from the city");
 								player.sendMessage("- perm [citizen name] (set|unset) (A|E|M|I|P|S) - Manage permissions");
 								player.sendMessage("- autojoin [true|false] - Players can auto join this city");
 							}
@@ -158,7 +161,10 @@ public class CommandExec implements CommandExecutor {
 				
 				if (args.length==2 && args[1].equalsIgnoreCase("join")) {
 					player.sendMessage(Messages.JoinableList.get());
-
+					if (cities.size()==0) {
+						player.sendMessage(Messages.NoCities.get());
+						return true;
+					}
 					for (City city : cities) {
 						if (city.isJoinable) {
 							player.sendMessage(Messages.CitiesListFormat.get(city.name, Integer.toString(city.citizens.size())));
@@ -217,7 +223,7 @@ public class CommandExec implements CommandExecutor {
 				player.teleport(city.spawn);
 				return true;
 			} else if (args[0].equalsIgnoreCase("invite")) {
-				if (args.length==0) {
+				if (args.length==1) {
 					player.sendMessage("Usage: /city invite [playerName]");
 					return false;
 				}
@@ -259,6 +265,7 @@ public class CommandExec implements CommandExecutor {
 					player.sendMessage(Messages.CityInvitationSent.get(args[1]));
 					player2.sendMessage(Messages.CityInvitationReceived.get(player.getName(), city.name));
 					player2.sendMessage(Messages.CityInvitationAcceptOrReject.get());
+					GPPCities.gppc.log(player.getName()+" invited "+player2.getName()+" to "+city.name);
 					return true;
 				}
 				player.sendMessage(Messages.CityInvitationExpiresOn.get(Long.toString((120-((System.currentTimeMillis()-playerData2.lastInvitedTime)/1000)))));
@@ -274,16 +281,15 @@ public class CommandExec implements CommandExecutor {
 					player.sendMessage(Messages.CityInvitationAccepted.get());
 					GPPCities.gppc.getServer().getPlayer(playerData.lastInvitedFrom).sendMessage(Messages.CityInvitationHasBeenAccepted.get(player.getName()));
 					playerData.lastInvitedCity.newCitizen(player.getUniqueId());
+					GPPCities.gppc.log(player.getName()+" accepted invitation to "+playerData.lastInvitedCity.name);
 				} else {
 					player.sendMessage(Messages.CityInvitationRejected.get());
 					GPPCities.gppc.getServer().getPlayer(playerData.lastInvitedFrom).sendMessage(Messages.CityInvitationHasBeenRejected.get(player.getName()));
+					GPPCities.gppc.log(player.getName()+" rejected invitation to "+playerData.lastInvitedCity.name);
 				}
 				playerData.removeInvite();
 				return true;
 			} else if (args[0].equalsIgnoreCase("join")) {
-				// permette ad un tizio che non è già in una città
-				// di entrare in una città che permette l'ingresso
-				
 				String cityName=DataStore.mergeStringArrayFromIndex(args, 1);
 
 				if (cityName.length()==0){
@@ -307,17 +313,15 @@ public class CommandExec implements CommandExecutor {
 				}
 				
 				if (city.isJoinable) {
-					city.sendMessageToAllCitizens(Messages.PlayerJoinedYourCity.get(player.getDisplayName()));
-					city.newCitizen(player.getUniqueId());
 					player.sendMessage(Messages.YouJoinedCity.get(city.name));
+					city.newCitizen(player.getUniqueId());
+					
+					GPPCities.gppc.log(player.getName()+" joined "+city.name);
 				} else {
 					player.sendMessage(Messages.CityAutojoinNotPermitted.get(city.name));
 				}
 				return true;
 			} else if (args[0].equalsIgnoreCase("delete")) {
-				// cancella la città di cui si è sindaci
-				// richiedi anche il nome della città per sicurezza
-				
 				String cityName=DataStore.mergeStringArrayFromIndex(args, 1);
 				
 				if (cityName == null || cityName=="") {
@@ -332,11 +336,13 @@ public class CommandExec implements CommandExecutor {
 				
 				if (player.hasPermission("gppc.cityAdmin")) { // Admins can delete a city
 					GPPCities.gppc.ds.deleteCity(city.claim.getID());
+					GPPCities.gppc.log(player.getName()+" deleted "+city.name);
 					return true;
 				}
 				
-				if (player.getUniqueId()==city.getMayor().id) { // The mayor can delete a city
+				if (player.getUniqueId().equals(city.getMayor().id)) { // The mayor can delete a city
 					GPPCities.gppc.ds.deleteCity(city.claim.getID());
+					GPPCities.gppc.log(player.getName()+" deleted "+city.name);
 					return true;
 				}
 				
@@ -363,11 +369,13 @@ public class CommandExec implements CommandExecutor {
 				if (args[1].equalsIgnoreCase("true")) {
 					city.isJoinable=true;
 					player.sendMessage(Messages.CityAutojoinOn.get());
+					GPPCities.gppc.log(player.getName()+" set "+city.name+" autjoin to true");
 					return true;
 				}
 				if (args[1].equalsIgnoreCase("false")) {
 					city.isJoinable=false;
 					player.sendMessage(Messages.CityAutojoinOff.get());
+					GPPCities.gppc.log(player.getName()+" set "+city.name+" autjoin to false");
 					return true;
 				}				
 				
@@ -397,6 +405,7 @@ public class CommandExec implements CommandExecutor {
 					if (city.getMayor().id.equals(player.getUniqueId())) {
 						city.setMotd(motd, args[1].equalsIgnoreCase("res"));
 						player.sendMessage(Messages.MotdSet.get());
+						GPPCities.gppc.log(player.getName()+" set "+city.name+" "+args[1]+" motd to "+motd);
 						return true;
 					}
 					player.sendMessage(Messages.NoPermission.get());
@@ -413,11 +422,17 @@ public class CommandExec implements CommandExecutor {
 				City city=GPPCities.gppc.ds.getCity(player.getUniqueId());
 				if (city==null) {
 					player.sendMessage(Messages.YouNotInACity.get());
-					return true;
+					return false;
 				}
+				if (city.getMayor().id.equals(player.getUniqueId())) {
+					player.sendMessage(Messages.MayorCannotLeave.get());
+					return false;
+				}
+				
 				player.sendMessage(Messages.YouLeftCity.get(city.name));
 				city.removeCitizen(player.getUniqueId());
 				city.sendMessageToAllCitizens(Messages.PlayerLeftCity.get(player.getDisplayName()));
+				GPPCities.gppc.log(player.getName()+" left "+city.name);
 				return true;
 			} else if (args[0].equalsIgnoreCase("expel")) {
 				City city=GPPCities.gppc.ds.getCity(player.getUniqueId());
@@ -445,6 +460,8 @@ public class CommandExec implements CommandExecutor {
 				if (GPPCities.gppc.getServer().getPlayer(citizen.id) != null) {
 					GPPCities.gppc.getServer().getPlayer(citizen.id).sendMessage(Messages.YouveBeenExpelled.get(city.name));
 				}
+				
+				GPPCities.gppc.log(player.getName()+" expelled "+citizen.getName()+" from "+city.name);
 				city.removeCitizen(citizen.id);
 				player.sendMessage(Messages.CitizenExpelled.get());
 				return true;
@@ -505,6 +522,7 @@ public class CommandExec implements CommandExecutor {
 				}
 				
 				city.changeOwner(citizen.id);
+				GPPCities.gppc.log(player.getName()+" changed "+city.name+" mayor to "+citizen.getName());
 				return true;
 			} else if (args[0].equalsIgnoreCase("rename")) {
 				City city=GPPCities.gppc.ds.getCity(player.getUniqueId());
@@ -535,12 +553,68 @@ public class CommandExec implements CommandExecutor {
 					return false;
 				}
 				
+				GPPCities.gppc.log(player.getName()+" renamed "+city.name+" to "+newName);
 				city.rename(newName);
 				player.sendMessage(Messages.CityRenamed.get());
+				
+				return true;
+			} else if (args[0].equalsIgnoreCase("ban")) {
+				City city=GPPCities.gppc.ds.getCity(player.getUniqueId());
+				if (city==null) {
+					player.sendMessage(Messages.YouNotInACity.get());
+					return true;
+				}
+				
+				if (!city.getCitizen(player.getUniqueId()).checkPerm(CitizenPermission.Mayor.perm)) {
+					player.sendMessage(Messages.NoPermission.get());
+					return false;
+				}
+				
+				if (args.length==1) {
+					player.sendMessage("Usage: /city ban [PlayerName]");
+					return false;
+				}
+				
+				UUID playerId=GriefPreventionPlus.instance.resolvePlayerId(args[1]);
+				if (playerId==null) {
+					player.sendMessage(GriefPreventionPlus.instance.dataStore.getMessage(net.kaikk.mc.gpp.Messages.PlayerNotFound2));
+					return false;
+				}
+				
+				city.addBan(playerId);
+				player.sendMessage(Messages.PlayerBannedConfirm.get(player.getName(), city.name));
+				GPPCities.gppc.log(player.getName()+" banned "+args[1]+" from "+city.name);
+				return true;
+			} else if (args[0].equalsIgnoreCase("unban")) {
+				City city=GPPCities.gppc.ds.getCity(player.getUniqueId());
+				if (city==null) {
+					player.sendMessage(Messages.YouNotInACity.get());
+					return true;
+				}
+				
+				if (!city.getCitizen(player.getUniqueId()).checkPerm(CitizenPermission.Mayor.perm)) {
+					player.sendMessage(Messages.NoPermission.get());
+					return false;
+				}
+				
+				if (args.length==1) {
+					player.sendMessage("Usage: /city ban [PlayerName]");
+					return false;
+				}
+				
+				UUID playerId=GriefPreventionPlus.instance.resolvePlayerId(args[1]);
+				if (playerId==null) {
+					player.sendMessage(GriefPreventionPlus.instance.dataStore.getMessage(net.kaikk.mc.gpp.Messages.PlayerNotFound2));
+					return false;
+				}
+				
+				city.unban(playerId);
+				player.sendMessage(Messages.PlayerUnbannedConfirm.get(player.getName(), city.name));
+				GPPCities.gppc.log(player.getName()+" unbanned "+args[1]+" from "+city.name);
 				return true;
 			} else if (args[0].equalsIgnoreCase("perm")) {
 				if (args.length==1) {
-					player.sendMessage("Usage: /city perm [citizen name] (set|unset) (A|I|E|M|P|S)");
+					player.sendMessage("Usage: /city perm ([citizen name]|default) (set|unset) (A|I|E|M|P|S)");
 					player.sendMessage("[A-ssistant, I-nvite, E-xpel, M-otd, P-lot, S-pawn]");
 					return false;
 				}
@@ -553,35 +627,57 @@ public class CommandExec implements CommandExecutor {
 					return false;
 				}
 				
-				Citizen citizen = city.getCitizen(args[1]);
-				if (citizen==null) {
-					player.sendMessage(Messages.PlayerIsNotACitizen.get());
-					return false;
-				}
-
-				if (args.length==4) {
-					if (senderCitizen.checkPerm(CitizenPermission.Assistant) && args[3].toLowerCase().contains("a")) {
-						player.sendMessage(Messages.NoPermission.get());
-						return false;
+				if (args[1].equalsIgnoreCase("default")) {
+					if (args.length==4) {
+						if (senderCitizen.checkPerm(CitizenPermission.Assistant) && args[3].toLowerCase().contains("a")) {
+							player.sendMessage(Messages.NoPermission.get());
+							return false;
+						}
+						
+						if (args[2].equalsIgnoreCase("set")) {
+							if (!city.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm)) {
+								city.setPerm(Citizen.parsePerms(args[3]));
+								GPPCities.gppc.log(player.getName()+" set "+city.name+" default perms "+args[3]);
+							}
+						} else if (args[2].equalsIgnoreCase("unset")) {
+							city.unsetPerm(Citizen.parsePerms(args[3]));
+							GPPCities.gppc.log(player.getName()+" unset "+city.name+" default perms "+args[3]);
+						}
 					}
 					
-					if (args[2].equalsIgnoreCase("set")) {
-						if (!citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm)) {
-							citizen.setPerm(Citizen.parsePerms(args[3]));
-						}
-					} else if (args[2].equalsIgnoreCase("unset")) {
-						citizen.unsetPerm(Citizen.parsePerms(args[3]));
+					player.sendMessage(Messages.CitizenPermissions.get(city.name, city.permsToString()));
+					
+				} else {
+					Citizen citizen = city.getCitizen(args[1]);
+					if (citizen==null) {
+						player.sendMessage(Messages.PlayerIsNotACitizen.get());
+						return false;
 					}
+	
+					if (args.length==4) {
+						if (senderCitizen.checkPerm(CitizenPermission.Assistant) && args[3].toLowerCase().contains("a")) {
+							player.sendMessage(Messages.NoPermission.get());
+							return false;
+						}
+						
+						if (args[2].equalsIgnoreCase("set")) {
+							if (!citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm)) {
+								citizen.setPerm(Citizen.parsePerms(args[3]));
+								GPPCities.gppc.log(player.getName()+" set "+citizen.getName()+"'s perms "+args[3]);
+							}
+						} else if (args[2].equalsIgnoreCase("unset")) {
+							citizen.unsetPerm(Citizen.parsePerms(args[3]));
+							GPPCities.gppc.log(player.getName()+" unset "+citizen.getName()+"'s perms "+args[3]);
+						}
+					}
+					
+					player.sendMessage(Messages.CitizenPermissions.get(args[1], citizen.permsToString()));
 				}
-				
-				player.sendMessage(Messages.CitizenPermissions.get(args[1], citizen.permsToString()));
 				return true;
 			} else {
-				// questi comandi necessitano dei dati del claim in cui ci si trova al momento
 				Claim claim = GriefPreventionPlus.instance.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
 
 				if (claim == null) {
-					// comandi da fare SOLO fuori dai claim, se mai ce ne fossero
 					player.sendMessage(Messages.YouNotOnAClaim.get());
 					return true;
 				}
@@ -623,7 +719,8 @@ public class CommandExec implements CommandExecutor {
 					String cityName=DataStore.mergeStringArrayFromIndex(args, 1);
 					String result = GPPCities.gppc.ds.newCity(pClaim, cityName, player.getUniqueId(), player.getLocation());
 					if (result=="") {
-						player.sendMessage(Messages.ClaimAlreadyACity.get());
+						GPPCities.gppc.getServer().broadcastMessage(Messages.NewCity.get(GPPCities.gppc.getServer().getPlayer(player.getUniqueId()).getDisplayName(), cityName));
+						GPPCities.gppc.log("New city "+cityName+" made by "+player.getName()+" at "+pClaim.locationToString());
 					} else {
 						player.sendMessage(result);
 					}
@@ -637,6 +734,7 @@ public class CommandExec implements CommandExecutor {
 					if (city.claim.contains(player.getLocation(), false, false)) {
 						city.setSpawn(player.getLocation());
 						player.sendMessage(Messages.CitySpawnSet.get());
+						GPPCities.gppc.log("City id "+city.claim.getID()+" spawn set by "+player.getName()+" to "+player.getLocation().toString());
 					} else {
 						player.sendMessage(Messages.CitySpawnInvalid.get());
 					}
@@ -644,21 +742,26 @@ public class CommandExec implements CommandExecutor {
 				} else if (args[0].equalsIgnoreCase("plot")) {
 					if (claim.parent == null) {
 						player.sendMessage(Messages.StandOnPlotOrSubClaim.get());
-						return true;
+						return false;
 					}
 					if (city == null) {
 						player.sendMessage(Messages.StandOnPlotOrSubClaim.get());
-						return true;
+						return false;
 					}
+					
+					if (city.getCitizen(player.getUniqueId())==null) {
+						player.sendMessage(Messages.YouNotACitizenHere.get());
+						return false;
+					}
+					
 					Plot plot = city.getPlot(claim);
 					if (plot!=null){
-						// esiste già un plot in questo subclaim
 						if (args.length==1) {
 							Citizen citizen = city.getCitizen(player.getUniqueId());
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Plot.perm)) {
-								player.sendMessage("Usage: /city plot [assign|unassign|claim|autoclaim|delete]");
+								player.sendMessage("Usage: /city plot [info|assign|unassign|take|takeable|delete]");
 							} else {
-								player.sendMessage("Usage: /city plot [claim|motd]");
+								player.sendMessage("Usage: /city plot [info|take|motd]");
 							}
 							return false;
 						}
@@ -692,6 +795,8 @@ public class CommandExec implements CommandExecutor {
 								GPPCities.gppc.getServer().getPlayer(citizen.id).sendMessage(Messages.YouGotAPlot.get(player.getDisplayName(), claim.locationToString()));
 							}
 							
+							GPPCities.gppc.log("Plot id "+plot.id+" assigned by "+player.getName()+" to "+args[2]);
+							
 							return true;
 						}
 						if (args[1].equalsIgnoreCase("unassign")) {
@@ -708,6 +813,7 @@ public class CommandExec implements CommandExecutor {
 							
 							plot.unassign();
 							player.sendMessage(Messages.PlotUnassigned.get());
+							GPPCities.gppc.log("Plot id "+plot.id+" unassigned by "+player.getName());
 							return true;
 						}
 						
@@ -725,6 +831,7 @@ public class CommandExec implements CommandExecutor {
 							city.deletePlot(plot);
 							
 							player.sendMessage(Messages.PlotDeleted.get());
+							GPPCities.gppc.log("Plot id "+plot.id+" deleted by "+player.getName());
 							return true;
 						}
 						
@@ -746,12 +853,13 @@ public class CommandExec implements CommandExecutor {
 							
 							plot.motd(motd);
 							player.sendMessage(Messages.PlotMotdEdited.get());
+							GPPCities.gppc.log("Plot id "+plot.id+" motd modified by "+citizen.getName()+" to "+motd);
 							return true;
 						}
 						
-						if (args[1].equalsIgnoreCase("claim")) {
-							if (!plot.isAutoClaimable) {
-								player.sendMessage(Messages.PlotAutoAssignNotAllowed.get());
+						if (args[1].equalsIgnoreCase("take")) {
+							if (!plot.isTakeable) {
+								player.sendMessage(Messages.PlotTakeNotAllowed.get());
 								return true;
 							}
 							
@@ -762,20 +870,26 @@ public class CommandExec implements CommandExecutor {
 							}
 							
 							if (city.citizenHasAssignedPlot(citizen)) {
-								player.sendMessage(Messages.PlotAutoAssignYouHaveAPlotAlready.get());
+								player.sendMessage(Messages.PlotTakeYouHaveAPlotAlready.get());
 								return true;
 							}
 							
 							plot.assign(citizen);
 							player.sendMessage(Messages.PlotAssigned.get());
+							GPPCities.gppc.log("Plot id "+plot.id+" took by "+citizen.getName());
 							
 							return true;
 						}
 						
 						
-						if (args[1].equalsIgnoreCase("autoclaim")) {
+						if (args[1].equalsIgnoreCase("takeable")) {
 							if (args.length<3) {
-								player.sendMessage("Usage: /city plot autoclaim (true|false)");
+								player.sendMessage("Usage: /city plot takeable (true|false)");
+								return false;
+							}
+							
+							if (plot.citizen!=null) {
+								
 								return false;
 							}
 							
@@ -786,19 +900,25 @@ public class CommandExec implements CommandExecutor {
 							}
 							
 							if (args[2].equalsIgnoreCase("true")) {
-								plot.autoClaimable(true);
-								player.sendMessage("Plot auto-claim: on");
+								plot.takeable(true);
+								player.sendMessage(Messages.TakeableOn.get());
+								GPPCities.gppc.log("Plot id "+plot.id+" takeable on");
 							} else if (args[2].equalsIgnoreCase("false")) {
-								plot.autoClaimable(false);
-								player.sendMessage("Plot auto-claim: off");
+								plot.takeable(false);
+								player.sendMessage(Messages.TakeableOff.get());
+								GPPCities.gppc.log("Plot id "+plot.id+" takeable off");
 							}
+							return true;
+						}
+						
+						if (args[1].equalsIgnoreCase("info")) {
+							player.sendMessage(Messages.PlotInfo.get(Integer.toString(plot.id), DateFormat.getDateTimeInstance().format(plot.assignedOn), plot.citizen.getDisplayName(), (plot.isTakeable?"true":"false")));
 							return true;
 						}
 						
 						player.sendMessage(Messages.WrongCommand.get());
 						return false;
 					} else {
-						// non esiste un plot in questo subclaim
 						if (args.length==1) {
 							player.sendMessage("Usage: /city plot [new|assign]");
 							return false;

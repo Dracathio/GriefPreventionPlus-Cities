@@ -36,7 +36,7 @@ class Plot {
 	Citizen citizen;
 	String motd;
 	Date assignedOn;
-	boolean isAutoClaimable;
+	boolean isTakeable;
 	
 	Plot(int id, Claim claim) {
 		this.id = id;
@@ -52,13 +52,13 @@ class Plot {
 		this.assignedOn = new Date();
 	}
 
-	Plot(int id, Claim claim, Citizen citizen, String motd, Date assignedOn, boolean isAutoClaimable) {
+	Plot(int id, Claim claim, Citizen citizen, String motd, Date assignedOn, boolean isTakeable) {
 		this.id = id;
 		this.claim = claim;
 		this.citizen = citizen;
 		this.motd = motd;
 		this.assignedOn = assignedOn;
-		this.isAutoClaimable = isAutoClaimable;
+		this.isTakeable = isTakeable;
 	}
 	
 	/** This method returns if the plot's claim is still there. Not sure where to use this: GP commands are overridden. */
@@ -77,14 +77,21 @@ class Plot {
 			
 			Statement statement = GPPCities.gppc.ds.db.createStatement();
 
-			statement.executeUpdate("UPDATE gppc_plots SET citizen = "+DataStore.UUIDtoHexString(citizen.id)+", motd = \"\", assignedOn = NOW(), isAutoClaimable = 0 WHERE id = "+this.id+";");
-
+			statement.executeUpdate("UPDATE gppc_plots SET citizen = "+DataStore.UUIDtoHexString(citizen.id)+", motd = \"\", assignedOn = NOW(), isTakeable = 0 WHERE id = "+this.id+";");
+			
+			// unset permission if it was already assigned
+			if (citizen.id!=null) {
+				PlayerData playerData = GPPCities.gppc.ds.playerData.get(citizen.id);
+				playerData.perm.unsetPermission("gpp.c"+this.id+".b");
+				playerData.perm.unsetPermission("gpp.c"+this.id+".m");
+			}
+			
 			this.claim.clearPermissions();
-
+			
 			this.citizen=citizen;
 			this.motd="";
 			this.assignedOn=new Date();
-			this.isAutoClaimable=false;
+			this.isTakeable=false;
 
 			// set permission
 			PlayerData playerData = GPPCities.gppc.ds.playerData.get(citizen.id);
@@ -136,19 +143,19 @@ class Plot {
 		}
 	}
 	
-	void autoClaimable(boolean sw) {
+	void takeable(boolean sw) {
 		try {
 			GPPCities.gppc.ds.dbCheck();
 			
 			Statement statement = GPPCities.gppc.ds.db.createStatement();
 
-			statement.executeUpdate("UPDATE gppc_plots SET isAutoClaimable = "+(sw?1:0)+" WHERE id = "+this.id+";");
+			statement.executeUpdate("UPDATE gppc_plots SET isTakeable = "+(sw?1:0)+" WHERE id = "+this.id+";");
 
-			this.isAutoClaimable=sw;
+			this.isTakeable=sw;
 		} catch (SQLException e) {
 			e.getStackTrace();
 			GPPCities.gppc.log(Level.SEVERE, e.getMessage());
-			GPPCities.gppc.log(Level.SEVERE, "Unable to set autoclaimable for plot "+this.id);
+			GPPCities.gppc.log(Level.SEVERE, "Unable to set takeable for plot "+this.id);
 		}
 	}
 }
