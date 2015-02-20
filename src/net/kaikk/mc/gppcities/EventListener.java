@@ -50,6 +50,11 @@ public class EventListener implements Listener {
 				pClaim = claim.parent;
 			}
 			
+			if (pClaim.isAdminClaim() && !GPPCities.gppc.config.AdminClaimMessage) {
+				playerData.action(null, null);
+				return;
+			}
+			
 			if (playerData.lastPlot != claim) {
 				City city = GPPCities.gppc.ds.citiesMap.get(pClaim.getID());
 				if (playerData.lastClaim != pClaim) {

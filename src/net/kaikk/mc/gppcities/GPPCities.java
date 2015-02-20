@@ -40,7 +40,6 @@ public class GPPCities extends JavaPlugin{
 		long loadingTime = System.currentTimeMillis();
 		gppc=this;
 		
-		
 		this.config = new Config();
 		// Inizialize database
 		try {

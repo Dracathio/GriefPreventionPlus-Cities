@@ -31,6 +31,7 @@ class Config {
 	final static String configFilePath = "plugins" + File.separator + "GriefPreventionPlus-Cities" + File.separator + "config.yml";
 	
 	int CityMinSize, /*ClaimableBlocksPerCitizen, ClaimableBlocksPerNationCitizen,*/ InactivityDays, InactivityCheckMinutes;
+	boolean AdminClaimMessage;
 	
 	Config() {
 		File configFile = new File(configFilePath);
@@ -50,7 +51,9 @@ class Config {
 		
 		this.InactivityCheckMinutes=config.getInt("InactivityCheckMinutes", 60);
 		config.set("InactivityCheckMinutes", this.InactivityCheckMinutes);
-	
+		
+		this.AdminClaimMessage=config.getBoolean("AdminClaimMessage", false);
+		config.set("AdminClaimMessage", this.AdminClaimMessage);
 		
 		try {
 			config.save(configFile);
