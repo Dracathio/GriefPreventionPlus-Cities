@@ -58,3 +58,7 @@ All builds for my plugins can be found at this link: http://kaikk.net/mc/
 
 ##Requirements
 This plugin requires GriefPreventionPlus. http://github.com/KaiKikuchi/GriefPreventionPlus
+
+##Support my life!
+If you like this plugin and you run it fine on your server, please donate! Thank you very much!
+<a href='https://pledgie.com/campaigns/28405'><img alt='Click here to lend your support to: GriefPreventionPlus-Cities and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/28405.png?skin_name=chrome' border='0' ></a>
