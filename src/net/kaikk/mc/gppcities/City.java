@@ -148,7 +148,6 @@ class City {
 			citizen.setPerm(CitizenPermission.Mayor);
 			this.sendMessageToAllCitizens(Messages.NewMayor.get(citizen.getDisplayName(), this.name));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

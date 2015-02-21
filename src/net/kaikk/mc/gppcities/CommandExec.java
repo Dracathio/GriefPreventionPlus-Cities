@@ -335,14 +335,14 @@ public class CommandExec implements CommandExecutor {
 				}
 				
 				if (player.hasPermission("gppc.cityAdmin")) { // Admins can delete a city
-					GPPCities.gppc.ds.deleteCity(city.claim.getID());
 					GPPCities.gppc.log(player.getName()+" deleted "+city.name);
+					GPPCities.gppc.ds.deleteCity(city.claim.getID());
 					return true;
 				}
 				
 				if (player.getUniqueId().equals(city.getMayor().id)) { // The mayor can delete a city
-					GPPCities.gppc.ds.deleteCity(city.claim.getID());
 					GPPCities.gppc.log(player.getName()+" deleted "+city.name);
+					GPPCities.gppc.ds.deleteCity(city.claim.getID());
 					return true;
 				}
 				
