@@ -76,7 +76,7 @@ public class InactivityCheckTask  extends BukkitRunnable {
 					
 					if (!found) {
 						gpp.log("Removing city named "+city.name);
-						gpp.ds.deleteCity(city.claim.getID());
+						gpp.ds.deleteCity(city);
 						removedCities++;
 						break;
 					}

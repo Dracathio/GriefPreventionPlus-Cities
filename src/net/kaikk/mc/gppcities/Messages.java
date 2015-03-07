@@ -46,7 +46,7 @@ public enum Messages {
 	final static String messagesFilePath = "plugins" + File.separator + "GriefPreventionPlus-Cities" + File.separator + "messages.yml";
 	
 	static void defaults() {
-		messages.put(Messages.CantRunCommandYouHaveCity, "&cYou can't run this command. Your claim at &b(x: {0}, z: {1}) &cis a city!");
+		messages.put(Messages.CantRunCommandYouHaveCity, "&cYou can't run this command: claim ID &b{0} &cis a city named &b{3}&c!");
 		messages.put(Messages.CitiesList, "&aCities list:");
 		messages.put(Messages.CitiesListFormat, "{0} [&e{1}&f]");
 		messages.put(Messages.CitiesNotAvailableOnAdminClaims, "&cCities are not available on admin claims.");
@@ -54,7 +54,7 @@ public enum Messages {
 		messages.put(Messages.CityAutojoinNotPermitted, "&c{0} does not permit auto-join, ask for an invite.");
 		messages.put(Messages.CityAutojoinOff, "&aNow players need an invitation to join this city.");
 		messages.put(Messages.CityAutojoinOn, "&aNow players can join this city without an invitation.");
-		messages.put(Messages.CityHasBeenDisbanded, "&c has been disbanded!");
+		messages.put(Messages.CityHasBeenDisbanded, "&c{0} has been disbanded!");
 		messages.put(Messages.CityInvitationAcceptOrReject, "&aType /c accept to accept; otherwise /c reject.");
 		messages.put(Messages.CityInvitationAccepted, "&aYou accepted the invitation.");
 		messages.put(Messages.CityInvitationExpiresOn, "&aThis player already recieved an invitation, it expires in: {0} seconds.");
@@ -81,7 +81,7 @@ public enum Messages {
 		messages.put(Messages.NoPermission, "&cYou don't have permission to use this command.");
 		messages.put(Messages.NotAuthorized, "&cYou're not authorized.");
 		messages.put(Messages.PlayerAlreadyOnAnotherCity, "&cThis player is already a member of another city.");
-		messages.put(Messages.PlayerIsNotACitizen, "&cThis player is not a citizen in this city.");
+		messages.put(Messages.PlayerIsNotACitizen, "&cThis player is not a citizen.");
 		messages.put(Messages.PlayerJoinedYourCity, "&b{0} &ajoined your city!");
 		messages.put(Messages.PlayerLeftCity, "&b{0} &aleft the city.");
 		messages.put(Messages.PlayerOfflineOrWrongName, "&cThis player is offline or the player name is wrong.");

@@ -228,7 +228,7 @@ class DataStore {
 	}
 	
 	/** Try to insert a new city on the database. It checks if it exists.
-	 * Note that this DOES NOT check if a town with the same ID already exists. (if it exists, it will throw an SQLException)
+	 * Note that this DOES NOT check if a city with the same ID already exists. (if it exists, it will throw an SQLException)
 	 * @return an error message, empty otherwise.
 	 * */
 	synchronized String newCity(Claim claim, String name, UUID mayor, Location loc) {
@@ -259,8 +259,6 @@ class DataStore {
 			statement.executeUpdate("INSERT INTO gppc_cities (id, cname, spawnX, spawnY, spawnZ, perms) VALUES ("+claim.getID()+", \""+name+"\", "+loc.getBlockX()+", "+loc.getBlockY()+", "+loc.getBlockZ()+", 0);");
 			
 			this.citiesMap.put(claim.getID(), new City(claim, name, mayor, loc));
-			
-			//gppc.getServer().broadcastMessage(Messages.NewCity.get(gppc.getServer().getPlayer(mayor).getDisplayName(), name));
 		} catch(SQLException e) {
 			e.getStackTrace();
 			log(Level.SEVERE, "Unable to create new city for claim id "+claim.getID()+" named '"+name+"' created by "+gppc.getServer().getPlayer(mayor).getName());
@@ -271,23 +269,21 @@ class DataStore {
 	}
 	
 	/** delete a city */
-	synchronized String deleteCity(long id) {
+	synchronized String deleteCity(City city) {
 		try {
 			this.dbCheck();
 			Statement statement = db.createStatement();
-
+			Integer id=city.claim.getID();
 			statement.executeUpdate("DELETE FROM gppc_citizens WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_plots WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_bans WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_cities WHERE id = "+id);
-			Claim claim = this.citiesMap.get(id).claim;
-			claim.dropPermission("[gpc.c"+claim.getID()+"]");
-
 			this.citiesMap.remove(id);
-			gppc.getServer().broadcastMessage(Messages.CityHasBeenDisbanded.get(this.citiesMap.get(id).name));
+			city.claim.dropPermission("[gpc.c"+id+"]");
+			gppc.getServer().broadcastMessage(Messages.CityHasBeenDisbanded.get(city.name));
 		} catch(SQLException e) {
 			e.getStackTrace();
-			log(Level.SEVERE, "Unable to delete city id "+id);
+			log(Level.SEVERE, "Unable to delete city id "+city.name);
 			log(Level.SEVERE, e.getMessage());
 			return "An error occurred with the database. Contact an administrator!";
 		}

@@ -48,26 +48,36 @@ public class CommandExec implements CommandExecutor {
 		PlayerData playerData=GPPCities.gppc.ds.playerData.get(player.getUniqueId()); 
 
 		// GP's commands override!
-		if (cmd.getName().equalsIgnoreCase("abandonallclaims") || cmd.getName().equalsIgnoreCase("deleteallclaims")) {
+		if (cmd.getName().equalsIgnoreCase("abandonallclaims")) {
 			// need to check if this player has cities
 			City city = GPPCities.gppc.ds.getCity(player.getUniqueId());
-			if (city==null) {
-				GPPCities.gppc.getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // Pass the command to GP
-			} else {
-				player.sendMessage(Messages.CantRunCommandYouHaveCity.get(Integer.toString(city.claim.getLesserBoundaryCorner().getBlockX()), Integer.toString(city.claim.getLesserBoundaryCorner().getBlockZ())));
+			if (city==null || !city.claim.ownerID.equals(player.getUniqueId())) {
+				return GPPCities.gppc.getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // Pass the command to GP
 			}
-			return true;
-			
+
+			player.sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.claim.getID()), city.name));
+			return false;
+		} else if (cmd.getName().equalsIgnoreCase("deleteallclaims")) {
+			if (args.length==0) {
+				return GPPCities.gppc.getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // Pass the command to GP
+			}
+			City city = GPPCities.gppc.ds.getCity(args[0]);
+			if (city==null || !city.claim.ownerID.equals(player.getUniqueId())) {
+				return GPPCities.gppc.getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // Pass the command to GP
+			}
+
+			player.sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.claim.getID()), city.name));
+			return false;
 		} else if (cmd.getName().equalsIgnoreCase("abandonclaim") || cmd.getName().equalsIgnoreCase("abandontoplevelclaim") || cmd.getName().equalsIgnoreCase("deleteclaim") || cmd.getName().equalsIgnoreCase("transferclaim")) {
 			Claim claim = GriefPreventionPlus.instance.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
-			if (claim==null) {
-				GPPCities.gppc.getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // No claim here, pass the command to GP
-			} else if (GPPCities.gppc.ds.citiesMap.get((claim.parent!=null?claim.parent.getID():claim.getID()))==null) {
-				GPPCities.gppc.getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // No city here, pass the command to GP
-			} else {
-				player.sendMessage(Messages.YouCantRunCommandOnACity.get());
+			if (claim!=null) {
+				City city = GPPCities.gppc.ds.citiesMap.get((claim.parent!=null?claim.parent.getID():claim.getID()));
+				if (city!=null) {
+					player.sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.claim.getID()), city.name));
+					return false;
+				}
 			}
-			return true;
+			return GPPCities.gppc.getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // No claim or city here, pass the command to GP
 		}
 
 		// GPPCities commands
@@ -81,10 +91,8 @@ public class CommandExec implements CommandExecutor {
 				City city = GPPCities.gppc.ds.getCity(player.getUniqueId());
 				if ((city==null && (args.length==0 || !args[0].equalsIgnoreCase("info"))) || (args.length!=0 && args[0].equalsIgnoreCase("help"))) {
 					player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6===== GriefPreventionPlus-Cities Help ====="));
+
 					player.sendMessage("- help - show this help");
-					if (player.hasPermission("gppc.citychat") && city!=null) {
-						player.sendMessage("- cc - send a message to your citizens or toggle the default send channel");
-					}
 					player.sendMessage("- list [join] - show city list, specify join for joinable cities");
 					player.sendMessage("- join - join a city");
 					player.sendMessage("- info - info about a city");
@@ -103,14 +111,16 @@ public class CommandExec implements CommandExecutor {
 							
 							player.sendMessage("- spawn");
 							player.sendMessage("- leave - Leave the city");
-							player.sendMessage("- plot - plot management");
 							
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Spawn.perm)) {
 								player.sendMessage("- setspawn");
 							}
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Plot.perm)) {
-								player.sendMessage("- plot [info|new|assign|delete|autoclaim|motd]");
+								player.sendMessage("- plot [info|new|assign|delete|take|takeable|motd]");
+							} else {
+								player.sendMessage("- plot [info|take]");
 							}
+							
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Motd.perm)) {
 								player.sendMessage("- motd [res|out|current]");
 							}
@@ -132,10 +142,13 @@ public class CommandExec implements CommandExecutor {
 								player.sendMessage("- delete [city name]");
 							}
 						}
+						
+						if (player.hasPermission("gppc.citychat")) {
+							player.sendMessage("/citychat - /cc - send a message to your citizens or toggle the default send channel");
+						}
 					}
 					return true;
 				}
-				
 				
 				if (args.length==2) {
 					city = GPPCities.gppc.ds.getCity(args[1]);
@@ -322,27 +335,25 @@ public class CommandExec implements CommandExecutor {
 				}
 				return true;
 			} else if (args[0].equalsIgnoreCase("delete")) {
-				String cityName=DataStore.mergeStringArrayFromIndex(args, 1);
-				
-				if (cityName == null || cityName=="") {
-					player.sendMessage("Usage: /city delete townname");
+				if (args.length!=2) {
+					player.sendMessage("Usage: /city delete CityName");
 				}
 				
-				City city = GPPCities.gppc.ds.getCity(cityName);
+				City city = GPPCities.gppc.ds.getCity(args[1]);
 				if (city==null) {
 					player.sendMessage(Messages.WrongCityNameCS.get());
 					return false;
 				}
-				
-				if (player.hasPermission("gppc.cityAdmin")) { // Admins can delete a city
+
+				if (player.getUniqueId().equals(city.getMayor().id)) { // The mayor can delete a city
 					GPPCities.gppc.log(player.getName()+" deleted "+city.name);
-					GPPCities.gppc.ds.deleteCity(city.claim.getID());
+					GPPCities.gppc.ds.deleteCity(city);
 					return true;
 				}
 				
-				if (player.getUniqueId().equals(city.getMayor().id)) { // The mayor can delete a city
-					GPPCities.gppc.log(player.getName()+" deleted "+city.name);
-					GPPCities.gppc.ds.deleteCity(city.claim.getID());
+				if (player.hasPermission("gppc.cityAdmin")) { // Admins can delete a city
+					GPPCities.gppc.log("Admin "+player.getName()+" deleted "+city.name);
+					GPPCities.gppc.ds.deleteCity(city);
 					return true;
 				}
 				
@@ -402,14 +413,10 @@ public class CommandExec implements CommandExecutor {
 				String motd=DataStore.mergeStringArrayFromIndex(args, 2);
 				
 				if (args[1].equalsIgnoreCase("res") || args[1].equalsIgnoreCase("out")) {
-					if (city.getMayor().id.equals(player.getUniqueId())) {
-						city.setMotd(motd, args[1].equalsIgnoreCase("res"));
-						player.sendMessage(Messages.MotdSet.get());
-						GPPCities.gppc.log(player.getName()+" set "+city.name+" "+args[1]+" motd to "+motd);
-						return true;
-					}
-					player.sendMessage(Messages.NoPermission.get());
-					return false;
+					city.setMotd(motd, args[1].equalsIgnoreCase("res"));
+					player.sendMessage(Messages.MotdSet.get());
+					GPPCities.gppc.log(player.getName()+" set "+city.name+" "+args[1]+" motd to "+motd);
+					return true;
 				} else if (args[1].equalsIgnoreCase("current")) {
 					// show both current motd
 					player.sendMessage(Messages.MotdRes.get(ChatColor.translateAlternateColorCodes('&', "&a"+city.motdRes))); 
@@ -482,23 +489,25 @@ public class CommandExec implements CommandExecutor {
 					}
 					return true;
 				} else if (args.length==2) {
-					OfflinePlayer cPlayer=GriefPreventionPlus.instance.resolvePlayer(args[1]);
-					if (!cPlayer.hasPlayedBefore()) {
+					OfflinePlayer targetPlayer=GriefPreventionPlus.instance.resolvePlayer(args[1]);
+					
+					if (targetPlayer==null || !targetPlayer.hasPlayedBefore()) {
 						player.sendMessage(Messages.PlayerOfflineOrWrongName.get());
 						return false;
 					}
 
-					City city = GPPCities.gppc.ds.getCity(cPlayer.getUniqueId());
+					City city = GPPCities.gppc.ds.getCity(targetPlayer.getUniqueId());
 					if (city==null) {
 						player.sendMessage(Messages.PlayerIsNotACitizen.get());
 						return false;
 					}
 					
-					Citizen citizen = city.getCitizen(cPlayer.getUniqueId());
+					Citizen citizen = city.getCitizen(targetPlayer.getUniqueId());
 					player.sendMessage(Messages.CitizenInfo.get(citizen.getDisplayName(), city.name, DateFormat.getDateTimeInstance().format(citizen.joinedOn), DateFormat.getDateTimeInstance().format(citizen.getLastPlayed())));
 					return true;
 				}
 				player.sendMessage(Messages.WrongCommand.get());
+				return false;
 			} else if (args[0].equalsIgnoreCase("mayor")) {
 				City city=GPPCities.gppc.ds.getCity(player.getUniqueId());
 				if (city==null) {
@@ -701,8 +710,8 @@ public class CommandExec implements CommandExecutor {
 						return false;
 					}
 					
-					if (args.length==1) {
-						player.sendMessage("Usage: /city new [city name]");
+					if (args.length!=2 || args[1].matches("^.*[^a-zA-Z0-9_-].*$")) {
+						player.sendMessage("Usage: /city new [cityName]");
 						return false;
 					}
 
@@ -716,11 +725,10 @@ public class CommandExec implements CommandExecutor {
 						return false;
 					}
 					
-					String cityName=DataStore.mergeStringArrayFromIndex(args, 1);
-					String result = GPPCities.gppc.ds.newCity(pClaim, cityName, player.getUniqueId(), player.getLocation());
+					String result = GPPCities.gppc.ds.newCity(pClaim, args[1], player.getUniqueId(), player.getLocation());
 					if (result=="") {
-						GPPCities.gppc.getServer().broadcastMessage(Messages.NewCity.get(GPPCities.gppc.getServer().getPlayer(player.getUniqueId()).getDisplayName(), cityName));
-						GPPCities.gppc.log("New city "+cityName+" made by "+player.getName()+" at "+pClaim.locationToString());
+						GPPCities.gppc.getServer().broadcastMessage(Messages.NewCity.get(GPPCities.gppc.getServer().getPlayer(player.getUniqueId()).getDisplayName(), args[1]));
+						GPPCities.gppc.log("New city "+args[1]+" made by "+player.getName()+" at "+pClaim.locationToString());
 					} else {
 						player.sendMessage(result);
 					}
@@ -981,6 +989,12 @@ public class CommandExec implements CommandExecutor {
 				return false;
 			}
 			
+			City city = GPPCities.gppc.ds.getCity(player.getUniqueId());
+			if (city==null) {
+				player.sendMessage(Messages.YouNotCitizen.get());
+				return false;
+			}
+			
 			if (args.length==0) {
 				if (GPPCities.gppc.ds.cityChat.contains(player.getUniqueId())) {
 					GPPCities.gppc.ds.cityChat.remove(player.getUniqueId());
@@ -992,11 +1006,6 @@ public class CommandExec implements CommandExecutor {
 				return true;
 			}
 			
-			City city = GPPCities.gppc.ds.getCity(player.getUniqueId());
-			if (city==null) {
-				player.sendMessage(Messages.YouNotCitizen.get());
-				return false;
-			}
 			String message=DataStore.mergeStringArrayFromIndex(args, 0);
 			String cMessage=Messages.CityChatFormat.get(city.name, player.getDisplayName(), message);
 			city.sendMessageToAllCitizens(cMessage);
