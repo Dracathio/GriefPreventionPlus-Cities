@@ -1,26 +1,21 @@
 #GriefPreventionPlus-Cities
 
-Grief Prevention is the best plugin to protect stuff.
-It's very easy to use and it works pretty well.
-
-Unlike other plugins like MyTown, it doesn't offer a system that 
-At this moment, there is no MyTown for Minecraft 1.7.10 and greater. In my opinion, MyTown is harder than GriefPrevention.
-
-With GPP-Cities you can have both the powerful and easy to use Grief Prevention and a cool and customizable cities plugin!
-
-Unfortunately, Grief Prevention has some API limitation that made impossible to implements lots of important features.
-Grief Prevention has some performance issue too. That's why I decided to fork Grief Prevention and make GriefPreventionPlus.
+This is an extension for GriefPreventionPlus (a custom version of GriefPrevention) that adds cities.
+It aims to be a substitute for MyTown on 1.7+ servers.
 
 GriefPreventionPlus is needed to make GriefPreventionPlus-Cities work!
 You can find GriefPreventionPlus at this link: http://github.com/KaiKikuchi/GriefPreventionPlus
 
-Lately, I play on DeVcoFTB's servers. I made a thread in their forum related to this plugin:
-http://www.devcoftb.com/forum/m/15988331/viewthread/18786939-griefpreventioncities/post/last
+Suggestions and questions are well accepted! If you find an issue, please report it!
+Please use the "issues" page on Github!
 
 This is an (old) alpha preview video: http://www.youtube.com/watch?v=iAGMhEr0YeY
 
-Suggestions and questions are well accepted! If you find an issue, please report it!
-Please use the "issues" page on Github!
+All DeVcoFTB's 1.7 modpacks run this plugin.
+Join us at http://www.devcoftb.com !
+
+## Download
+All builds for my plugins can be found at this link: http://kaikk.net/mc/
 
 ##Features
 - Cities list
@@ -47,9 +42,6 @@ Please use the "issues" page on Github!
 - Taxes: no claim loose if the player doesn't pay, but disable commands like /spawn
 - Get claimable blocks for every new citizen
 - Tab completer! (everyone hates players with long and hard to type names... xD)
-
-## Download
-All builds for my plugins can be found at this link: http://kaikk.net/mc/
 
 ##Commands:
 - /city /c - main city command (/c help for the help)
