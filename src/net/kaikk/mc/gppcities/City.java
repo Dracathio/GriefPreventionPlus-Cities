@@ -353,7 +353,7 @@ class City {
 			GPPCities.gppc.ds.playerData.get(id).perm.unsetPermission("gppc.c"+this.claim.getID());
 			this.citizens.remove(id);
 			
-			// add bonus claimable blocks for the mayor
+			// remove bonus claimable blocks for the mayor
 			int blocks=GPPCities.gppc.config.ClaimBlocksPerCitizen;
 			if (blocks>0) {
 				DataStore.adjustClaimableBlocks(this.getMayor().id, -blocks);

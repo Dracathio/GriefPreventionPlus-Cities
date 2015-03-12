@@ -31,7 +31,7 @@ public enum Messages {
 	CantRunCommandYouHaveCity, CitiesList, CitiesListFormat, CitiesNotAvailableOnAdminClaims, CitizenExpelled, CityAutojoinNotPermitted,
 	CityAutojoinOff, CityAutojoinOn, CityHasBeenDisbanded, CityInvitationAcceptOrReject, CityInvitationAccepted, CityInvitationExpiresOn,
 	CityInvitationHasBeenAccepted, CityInvitationHasBeenRejected, CityInvitationNoPending, CityInvitationReceived, CityInvitationRejected,
-	CityInvitationSent, CityNotExists, CitySpawnInvalid, CitySpawnMissing, CitySpawnSet, ClaimAlreadyACity, InviteNotAllowed, JoinableList,
+	CityInvitationSent, CityNotExists, CitySpawnInvalid, CitySpawnMissing, CitySpawnSet, ClaimAlreadyACity, InviteNotAllowed,
 	MotdHasBeenSet, MotdOut, MotdRes, MotdSet, NewCity, NoCities, NoPermission, NotAuthorized, PlayerAlreadyOnAnotherCity, PlayerIsNotACitizen,
 	PlayerJoinedYourCity, PlayerLeftCity, PlayerOfflineOrWrongName, PlotAssigned, PlotTakeNotAllowed, PlotTakeYouHaveAPlotAlready,
 	PlotCreated, PlotDeleted, PlotMotdEdited, PlotUnassigned, StandOnPlotOrSubClaim, ThisCityNotExists, WelcomeBackTo, WelcomeTo,
@@ -40,7 +40,7 @@ public enum Messages {
 	
 	CitizensList, CitizensListFormat, CitizenInfo, ClaimTooSmall, YouGotAPlot, YouLostAPlot, CitizenPermissions, CityInfo, YouJoinedCity,
 	YouAreBanned, PlayerIsBanned, NewMayor, CityChatFormat, CityNameInvalid, CitySameNameExists, CityRenamed, CityChatOn, CityChatOff,
-	TakeableOn, TakeableOff, NoJoinableCities, PlayerBannedConfirm, PlayerUnbannedConfirm, PlotInfo, MayorCannotLeave, YouOnUnassignedPlot,
+	TakeableOn, TakeableOff, PlayerBannedConfirm, PlayerUnbannedConfirm, PlotInfo, MayorCannotLeave, YouOnUnassignedPlot,
 	YouOnTakeablePlot, YouOnJoinableCity;
 
 	static private HashMap<Messages, String> messages = new HashMap<Messages, String>();

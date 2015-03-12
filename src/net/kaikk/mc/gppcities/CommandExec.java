@@ -1005,7 +1005,7 @@ public class CommandExec implements CommandExecutor {
 		}
 		
 		if (cmd.getName().equalsIgnoreCase("citychatspy")) {
-			if (player.hasPermission("gppc.cityadmin.spy")) {
+			if (!player.hasPermission("gppc.cityadmin.spy")) {
 				player.sendMessage(Messages.NoPermission.get());
 				return false;
 			}
@@ -1027,14 +1027,13 @@ public class CommandExec implements CommandExecutor {
 		}
 		
 		if (cmd.getName().equalsIgnoreCase("cityadmin")) {
-			if (player.hasPermission("gppc.cityadmin")) {
+			if (!player.hasPermission("gppc.cityadmin")) {
 				player.sendMessage(Messages.NoPermission.get());
 				return false;
 			}
 			
 			if (args.length<2) {
-				player.sendMessage("Admin commands:"
-						+ "Usage: /cityadmin [CityName] [join|mayor|rename|delete|expel|setspawn]");
+				player.sendMessage("Usage: /cityadmin [CityName] [join|mayor|rename|delete|expel|setspawn]");
 				return false;
 			}
 			
@@ -1045,7 +1044,7 @@ public class CommandExec implements CommandExecutor {
 			}
 			
 			if (args[0].equalsIgnoreCase("delete")) {
-				if (player.hasPermission("gppc.cityadmin.delete")) {
+				if (!player.hasPermission("gppc.cityadmin.delete")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -1061,7 +1060,7 @@ public class CommandExec implements CommandExecutor {
 			}
 			
 			if (args[0].equalsIgnoreCase("join")) {
-				if (player.hasPermission("gppc.cityadmin.join")) {
+				if (!player.hasPermission("gppc.cityadmin.join")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -1085,7 +1084,7 @@ public class CommandExec implements CommandExecutor {
 			}
 
 			if (args[1].equalsIgnoreCase("mayor")) {
-				if (player.hasPermission("gppc.cityadmin.mayor")) {
+				if (!player.hasPermission("gppc.cityadmin.mayor")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -1107,7 +1106,7 @@ public class CommandExec implements CommandExecutor {
 			}
 			
 			if (args[1].equalsIgnoreCase("rename")) {
-				if (player.hasPermission("gppc.cityadmin.rename")) {
+				if (!player.hasPermission("gppc.cityadmin.rename")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -1137,7 +1136,7 @@ public class CommandExec implements CommandExecutor {
 			}
 			
 			if (args[1].equalsIgnoreCase("setspawn")) {
-				if (player.hasPermission("gppc.cityadmin.setspawn")) {
+				if (!player.hasPermission("gppc.cityadmin.setspawn")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -1158,7 +1157,7 @@ public class CommandExec implements CommandExecutor {
 			}
 			
 			if (args[1].equalsIgnoreCase("expel")) {
-				if (player.hasPermission("gppc.cityadmin.expel")) {
+				if (!player.hasPermission("gppc.cityadmin.expel")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -1184,7 +1183,7 @@ public class CommandExec implements CommandExecutor {
 			}
 			
 			if (args[1].equalsIgnoreCase("ban")) {	
-				if (player.hasPermission("gppc.cityadmin.ban")) {
+				if (!player.hasPermission("gppc.cityadmin.ban")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -1206,7 +1205,7 @@ public class CommandExec implements CommandExecutor {
 			}
 			
 			if (args[1].equalsIgnoreCase("unban")) {
-				if (player.hasPermission("gppc.cityadmin.ban")) {
+				if (!player.hasPermission("gppc.cityadmin.ban")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}

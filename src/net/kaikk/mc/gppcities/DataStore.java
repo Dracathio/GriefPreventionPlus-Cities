@@ -278,9 +278,17 @@ class DataStore {
 			statement.executeUpdate("DELETE FROM gppc_plots WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_bans WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_cities WHERE id = "+id);
-			this.citiesMap.remove(id);
+			
+			// remove bonus claimable blocks for the mayor
+			int blocks=GPPCities.gppc.config.ClaimBlocksPerCitizen*city.citizens.size();
+			if (blocks>0) {
+				DataStore.adjustClaimableBlocks(city.getMayor().id, -blocks);
+				GPPCities.gppc.log(Level.INFO, "Mayor "+city.getMayor().getName()+" lost "+blocks+" claimable blocks.");
+			}
+			
 			city.claim.dropPermission("[gpc.c"+id+"]");
 			gppc.getServer().broadcastMessage(Messages.CityHasBeenDisbanded.get(city.name));
+			this.citiesMap.remove(id);
 		} catch(SQLException e) {
 			e.getStackTrace();
 			log(Level.SEVERE, "Unable to delete city id "+city.name);
