@@ -40,7 +40,8 @@ public enum Messages {
 	
 	CitizensList, CitizensListFormat, CitizenInfo, ClaimTooSmall, YouGotAPlot, YouLostAPlot, CitizenPermissions, CityInfo, YouJoinedCity,
 	YouAreBanned, PlayerIsBanned, NewMayor, CityChatFormat, CityNameInvalid, CitySameNameExists, CityRenamed, CityChatOn, CityChatOff,
-	TakeableOn, TakeableOff, NoJoinableCities, PlayerBannedConfirm, PlayerUnbannedConfirm, PlotInfo, MayorCannotLeave;
+	TakeableOn, TakeableOff, NoJoinableCities, PlayerBannedConfirm, PlayerUnbannedConfirm, PlotInfo, MayorCannotLeave, YouOnUnassignedPlot,
+	YouOnTakeablePlot, YouOnJoinableCity;
 
 	static private HashMap<Messages, String> messages = new HashMap<Messages, String>();
 	final static String messagesFilePath = "plugins" + File.separator + "GriefPreventionPlus-Cities" + File.separator + "messages.yml";
@@ -70,14 +71,12 @@ public enum Messages {
 		messages.put(Messages.CitySpawnSet, "&aCity spawn set.");
 		messages.put(Messages.ClaimAlreadyACity, "&cThis claim is already a city.");
 		messages.put(Messages.InviteNotAllowed, "&cYou're not allowed to invite people.");
-		messages.put(Messages.JoinableList, "&aJoinable cities list:");
 		messages.put(Messages.MotdHasBeenSet, "&aA new motd has been set:");
 		messages.put(Messages.MotdOut, "&aOuters motd: &b{0}");
 		messages.put(Messages.MotdRes, "&aResidents motd: &b{0}");
 		messages.put(Messages.MotdSet, "&aMotd set.");
 		messages.put(Messages.NewCity, "&a{0} has just founded a new city called &b{1}&a.");
 		messages.put(Messages.NoCities, "&aThere's no city! Be the first! Make a claim, and type /city new CityName.");
-		messages.put(Messages.NoJoinableCities, "&aThere's no joinable city! Ask for an invitation, or make a new city!");
 		messages.put(Messages.NoPermission, "&cYou don't have permission to use this command.");
 		messages.put(Messages.NotAuthorized, "&cYou're not authorized.");
 		messages.put(Messages.PlayerAlreadyOnAnotherCity, "&cThis player is already a member of another city.");
@@ -140,10 +139,13 @@ public enum Messages {
 		messages.put(Messages.TakeableOff, "&aNew citizen can't take this plot on their own.");
 		messages.put(Messages.PlayerBannedConfirm, "&a{0} was banned from {1} and can't autojoin or be invited.");
 		messages.put(Messages.PlayerUnbannedConfirm, "&a{0} was unbanned from {1}.");
-		messages.put(Messages.PlotInfo, "&bPlot ID: {1}\n"+
-				"&aAssigned on: {2} | Assigned to: {3}\n"+
-				"&aTakeable: {4}");
+		messages.put(Messages.PlotInfo, "&bPlot ID: {0}\n"+
+				"&aAssigned on: {1} | Assigned to: {2}\n"+
+				"&aTakeable: {3}");
 		messages.put(Messages.MayorCannotLeave, "&aYou can't leave your city. Do /c mayor [CitizenName] to change the mayor.");
+		messages.put(Messages.YouOnUnassignedPlot, "&bYou're on an unassigned plot.");
+		messages.put(Messages.YouOnTakeablePlot, "&bYou can take this plot with /c plot take.");
+		messages.put(Messages.YouOnJoinableCity, "&bYou can join this city with /c join {0}.");
 	}
 	
 	static void load() {

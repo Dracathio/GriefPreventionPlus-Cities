@@ -387,10 +387,10 @@ class DataStore {
 	    return new Location(world, x, y, z, yaw, 0f);
 	}
 	
-	void cityChatSpy(String message) {
+	void cityChatSpy(String message, City city) {
 		for (UUID uuid : this.cityChatSpy) {
 			Player spy = gppc.getServer().getPlayer(uuid);
-			if (spy!=null) {
+			if (spy!=null && city.getCitizen(uuid)!=null) {
 				spy.sendMessage(message);
 			}
 		}
@@ -440,6 +440,12 @@ class DataStore {
 	public static String UUIDtoHexString(UUID uuid) {
 		if (uuid==null) return "0x0";
 		return "0x"+org.apache.commons.lang.StringUtils.leftPad(Long.toHexString(uuid.getMostSignificantBits()), 16, "0")+org.apache.commons.lang.StringUtils.leftPad(Long.toHexString(uuid.getLeastSignificantBits()), 16, "0");
+	}
+	
+	public static void adjustClaimableBlocks(UUID playerId, int adjustment) {
+		net.kaikk.mc.gpp.PlayerData playerData = GriefPreventionPlus.instance.dataStore.getPlayerData(playerId);
+		playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + adjustment);
+		GriefPreventionPlus.instance.dataStore.savePlayerData(playerId, playerData);
 	}
 }
 

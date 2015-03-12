@@ -1,6 +1,6 @@
 name: GPPCities
 main: net.kaikk.mc.gppcities.GPPCities
-version: 1.3
+version: 1.4
 author: KaiNoMood
 depend: [GriefPreventionPlus]
 
@@ -14,6 +14,11 @@ commands:
       description: City chat
       aliases: cc
       permission: gppc.citychat
+      permission-message: <permission> is required to execute this command.
+   citychatspy:
+      description: City chat spy
+      aliases: ccs
+      permission: gppc.cityadmin.spy
       permission-message: <permission> is required to execute this command.
    cityadmin:
       description: City admin commands
@@ -50,9 +55,33 @@ permissions:
         description: Permits to use the city chat
         default: true
     gppc.cityadmin.*:
-        description: Gives access to all /city administrative commands
+        description: Gives access to all city administrative commands
         children:
             gppc.cityadmin: true
+            gppc.cityadmin.spy: true
+            gppc.cityadmin.join: true
+            gppc.cityadmin.rename: true
+            gppc.cityadmin.delete: true
+            gppc.cityadmin.expel: true
+            gppc.cityadmin.ban: true
     gppc.cityadmin:
         description: Permits to manage others cities
+        default: op
+    gppc.cityadmin.spy:
+        description: Spy chat
+        default: op
+    gppc.cityadmin.join:
+        description: Join any city
+        default: op
+    gppc.cityadmin.rename:
+        description: Rename any city
+        default: op
+    gppc.cityadmin.delete:
+        description: Delete any city
+        default: op
+    gppc.cityadmin.expel:
+        description: Expel a citizen from any city
+        default: op
+    gppc.cityadmin.ban:
+        description: Ban or unban a player from any city
         default: op

@@ -131,27 +131,24 @@ class City {
 		if (citizen==null) {
 			return;
 		}
-	
-		try {
-			GriefPreventionPlus.instance.dataStore.changeClaimOwner(this.claim, newMayor);
-		} catch (Exception e) {
-			e.printStackTrace(); // this should never happen: city claims are always top-claims
-			return;
-		}
 		
 		try {
 			GriefPreventionPlus.instance.dataStore.changeClaimOwner(this.claim, newMayor);
 			this.claim.setPermission(this.getMayor().id, ClaimPermission.BUILD);
 			this.claim.setPermission(this.getMayor().id, ClaimPermission.MANAGE);
 			
+			// add bonus claimable blocks for the mayor
+			int blocks=GPPCities.gppc.config.ClaimBlocksPerCitizen*this.citizens.size();
+			DataStore.adjustClaimableBlocks(this.getMayor().id, -blocks);
+			DataStore.adjustClaimableBlocks(newMayor, blocks);
+			GPPCities.gppc.log(Level.INFO, "Transferred "+blocks+" claim blocks from "+this.getMayor().getName()+" to "+citizen.getName()+".");
+			
 			this.getMayor().setPerm(CitizenPermission.Assistant); // Make the current mayor an assistant
 			citizen.setPerm(CitizenPermission.Mayor);
 			this.sendMessageToAllCitizens(Messages.NewMayor.get(citizen.getDisplayName(), this.name));
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(); // this should never happen: city claims are always top-claims
 		}
-		
-
 	}
 	
 	String info() {
@@ -291,10 +288,17 @@ class City {
 			
 			statement.executeUpdate("INSERT INTO gppc_citizens (id, cid, perms, joinedOn) VALUES ("+DataStore.UUIDtoHexString(playerId)+", "+this.claim.getID()+", "+rank+", NOW());");
 			this.sendMessageToAllCitizens(Messages.PlayerJoinedYourCity.get(GPPCities.gppc.getServer().getPlayer(playerId).getDisplayName()));
-			
+
 			GPPCities.gppc.ds.playerData.get(playerId).perm.setPermission("gppc.c"+this.claim.getID(), true);
 			
 			this.citizens.put(playerId, new Citizen(playerId, rank, this.creationDate));
+			
+			// add bonus claim blocks for the mayor
+			int blocks=GPPCities.gppc.config.ClaimBlocksPerCitizen;
+			if (blocks>0) {
+				DataStore.adjustClaimableBlocks(this.getMayor().id, blocks);
+				GPPCities.gppc.log(Level.INFO, "Mayor "+this.getMayor().getName()+" got "+blocks+" claimable blocks.");
+			}
 		} catch (SQLException e) {
 			e.getStackTrace();
 			GPPCities.gppc.log(Level.SEVERE, e.getMessage());
@@ -348,6 +352,13 @@ class City {
 			statement.executeUpdate("DELETE FROM gppc_citizens WHERE id = "+DataStore.UUIDtoHexString(id)+";");
 			GPPCities.gppc.ds.playerData.get(id).perm.unsetPermission("gppc.c"+this.claim.getID());
 			this.citizens.remove(id);
+			
+			// add bonus claimable blocks for the mayor
+			int blocks=GPPCities.gppc.config.ClaimBlocksPerCitizen;
+			if (blocks>0) {
+				DataStore.adjustClaimableBlocks(this.getMayor().id, -blocks);
+				GPPCities.gppc.log(Level.INFO, "Mayor "+this.getMayor().getName()+" lost "+blocks+" claimable blocks.");
+			}
 		} catch (SQLException e) {
 			e.getStackTrace();
 			GPPCities.gppc.log(Level.SEVERE, e.getMessage());

@@ -69,6 +69,10 @@ public class EventListener implements Listener {
 							if (city.motdOut!=null && !city.motdOut.isEmpty()) {
 								event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a"+city.motdOut));
 							}
+							
+							if (city.isJoinable && GPPCities.gppc.ds.getCity(event.getPlayer().getUniqueId())==null) {
+								event.getPlayer().sendMessage(Messages.YouOnJoinableCity.get(city.name));
+							}
 						}
 					
 					} else {
@@ -83,6 +87,11 @@ public class EventListener implements Listener {
 					if (plot!=null) {
 						if (plot.citizen != null) {
 							event.getPlayer().sendMessage(Messages.YouOnPlot.get(plot.citizen.getDisplayName()));
+						} else {
+							event.getPlayer().sendMessage(Messages.YouOnUnassignedPlot.get());
+							if (plot.isTakeable && !city.citizenHasAssignedPlot(city.getCitizen(event.getPlayer().getUniqueId()))) {
+								event.getPlayer().sendMessage(Messages.YouOnTakeablePlot.get());
+							}
 						}
 						if (!plot.motd.isEmpty()) {
 							event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a"+plot.motd));
@@ -147,6 +156,10 @@ public class EventListener implements Listener {
 			return;
 		}
 		
+		if (event.getMessage().startsWith("/")) { // commands are excluded
+			return;
+		}
+		
 		if (GPPCities.gppc.ds.cityChat.contains(player.getUniqueId())) {
 			City city = GPPCities.gppc.ds.getCity(player.getUniqueId());
 			if (city==null) {
@@ -155,7 +168,7 @@ public class EventListener implements Listener {
 			}
 			String message=Messages.CityChatFormat.get(city.name, player.getDisplayName(), event.getMessage());
 			city.sendMessageToAllCitizens(message);
-			GPPCities.gppc.ds.cityChatSpy(message);
+			GPPCities.gppc.ds.cityChatSpy(message, city);
 			GPPCities.gppc.log("CC["+city.name+"] <"+player.getName()+"> "+event.getMessage());
 			event.setCancelled(true);
 		}

@@ -52,11 +52,11 @@ class Citizen {
 	}
 	/** returns citizen's name */
 	String getName() {
-		return GPPCities.gppc.getServer().getOfflinePlayer(this.id).getName();
+		return this.getPlayer().getName();
 	}
 	/** returns citizen's display name, or the name if he's not online */
 	String getDisplayName() {
-		OfflinePlayer citizen = GPPCities.gppc.getServer().getOfflinePlayer(this.id);
+		OfflinePlayer citizen = this.getPlayer();
 		if (citizen.isOnline()) {
 			return citizen.getPlayer().getDisplayName();
 		} else {
@@ -157,6 +157,10 @@ class Citizen {
 			GPPCities.gppc.log(Level.SEVERE, e.getMessage());
 			GPPCities.gppc.log(Level.SEVERE, "Unable to update perms for citizen UUID["+DataStore.UUIDtoHexString(this.id)+"]");
 		}
+	}
+	
+	OfflinePlayer getPlayer() {
+		return GPPCities.gppc.getServer().getOfflinePlayer(this.id);
 	}
 }
 
