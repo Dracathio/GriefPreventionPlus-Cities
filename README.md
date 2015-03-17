@@ -52,13 +52,7 @@ All builds for my plugins can be found at this link: http://kaikk.net/mc/
 This plugin requires GriefPreventionPlus. http://github.com/KaiKikuchi/GriefPreventionPlus
 
 ##Support my life!
-I'm currently unemployed and I'm studying at University (Computer Science). I need support for my studies!
-If you like this plugin and you run it fine on your server, please consider a donation!
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="QK9E8Y9SZ5NT8">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypalobjects.com/it_IT/i/scr/pixel.gif" width="1" height="1">
-</form>
+I'm currently unemployed and I'm studying at University (Computer Science).
+I'll be unable to continue my studies soon because I need money.
+If you like this plugin and you run it fine on your server, please <a href='http://kaikikuchi.github.io/'>consider a donation</a>!
 Thank you very much!
-
