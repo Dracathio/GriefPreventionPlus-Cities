@@ -1019,11 +1019,11 @@ public class CommandExec implements CommandExecutor {
 				return false;
 			}
 			
-			if (args[1].equalsIgnoreCase("on")) {
+			if (args[0].equalsIgnoreCase("on")) {
 				GPPCities.gppc.ds.cityChatSpy.add(player.getUniqueId());
 				player.sendMessage("City chat spy on");
 				return true;
-			} else if (args[1].equalsIgnoreCase("off")) {
+			} else if (args[0].equalsIgnoreCase("off")) {
 				GPPCities.gppc.ds.cityChatSpy.remove(player.getUniqueId());
 				player.sendMessage("City chat spy off");
 				return true;
