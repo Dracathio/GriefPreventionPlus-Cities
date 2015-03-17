@@ -89,7 +89,9 @@ public class EventListener implements Listener {
 							event.getPlayer().sendMessage(Messages.YouOnPlot.get(plot.citizen.getDisplayName()));
 						} else {
 							event.getPlayer().sendMessage(Messages.YouOnUnassignedPlot.get());
-							if (plot.isTakeable && !city.citizenHasAssignedPlot(city.getCitizen(event.getPlayer().getUniqueId()))) {
+							
+							Citizen citizen = city.getCitizen(event.getPlayer().getUniqueId());
+							if (plot.isTakeable && citizen!=null && !city.citizenHasAssignedPlot(citizen)) {
 								event.getPlayer().sendMessage(Messages.YouOnTakeablePlot.get());
 							}
 						}

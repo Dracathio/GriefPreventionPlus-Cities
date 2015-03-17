@@ -32,36 +32,16 @@ public class GPPCities extends JavaPlugin{
 	DataStore ds;
 	
 	protected Config config;
-	
 
 	@Override
 	public void onEnable() {
 		log("Loading...");
 		long loadingTime = System.currentTimeMillis();
 		gppc=this;
-
 		/* TODO
-		 * plot list
-		 * takeable plot list (position)
-		 * better help for everything
-		 * 
-		 * nations
-		 * taxes (soft-depend, configurable: default new city price, mayor can set join price and m^2 price, if not enough money disable city functionalities)
-		 * console commands
-		 * tabcompleter for all commands
-		 */
-		
-		/* FIXME
-		 * when trying to modify plot motd not in your city, it says "wrong command"
-		 */
-		
-		/* features
-		 * .claim with a specific range from your position
-		 * .delete a claim with an id
-		 * city chat tags (mayor/assistant) - or just a different color?
-		 * mineverse support for city chat
+		 * c plot info - allow cityadmins
+		 * c plot info - crash on unassigned plots
 		 * */
-		
 		this.config = new Config();
 		// Inizialize database
 		try {
@@ -87,6 +67,7 @@ public class GPPCities extends JavaPlugin{
 
 		this.getCommand("city").setExecutor(new CommandExec());
 		this.getCommand("citychat").setExecutor(new CommandExec());
+		this.getCommand("citychatspy").setExecutor(new CommandExec());
 		this.getCommand("cityadmin").setExecutor(new CommandExec());
 
 		PluginManager pm = getServer().getPluginManager();

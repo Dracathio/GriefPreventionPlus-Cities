@@ -340,7 +340,7 @@ class City {
 	
 	void removeCitizen(UUID id) {
 		for (Plot plot : this.plots.values()) {
-			if (plot.citizen.id==id) {
+			if (plot.citizen!=null && plot.citizen.id==id) {
 				plot.unassign();
 			}
 		}

@@ -82,8 +82,10 @@ class Plot {
 			// unset permission if it was already assigned
 			if (citizen.id!=null) {
 				PlayerData playerData = GPPCities.gppc.ds.playerData.get(citizen.id);
-				playerData.perm.unsetPermission("gpp.c"+this.id+".b");
-				playerData.perm.unsetPermission("gpp.c"+this.id+".m");
+				if (playerData!=null) {
+					playerData.perm.unsetPermission("gpp.c"+this.id+".b");
+					playerData.perm.unsetPermission("gpp.c"+this.id+".m");
+				}
 			}
 			
 			this.claim.clearPermissions();
@@ -95,8 +97,10 @@ class Plot {
 
 			// set permission
 			PlayerData playerData = GPPCities.gppc.ds.playerData.get(citizen.id);
-			playerData.perm.setPermission("gpp.c"+this.id+".b", true);
-			playerData.perm.setPermission("gpp.c"+this.id+".m", true);
+			if (playerData!=null) {
+				playerData.perm.setPermission("gpp.c"+this.id+".b", true);
+				playerData.perm.setPermission("gpp.c"+this.id+".m", true);
+			}
 		} catch (SQLException e) {
 			e.getStackTrace();
 			GPPCities.gppc.log(Level.SEVERE, e.getMessage());

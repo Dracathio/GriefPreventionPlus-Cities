@@ -611,7 +611,7 @@ public class CommandExec implements CommandExecutor {
 				GPPCities.gppc.log(player.getName()+" unbanned "+args[1]+" from "+city.name);
 				return true;
 			} else if (args[0].equalsIgnoreCase("perm")) {
-				if (args.length==1) {
+				if (args.length==1 || args.length==3) {
 					player.sendMessage("Usage: /city perm ([citizen name]|default) (set|unset) (A|I|E|M|P|S)");
 					player.sendMessage("[A-ssistant, I-nvite, E-xpel, M-otd, P-lot, S-pawn]");
 					return false;
@@ -756,7 +756,7 @@ public class CommandExec implements CommandExecutor {
 						if (args.length==1) {
 							Citizen citizen = city.getCitizen(player.getUniqueId());
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Plot.perm)) {
-								player.sendMessage("Usage: /city plot [info|assign|unassign|take|takeable|delete]");
+								player.sendMessage("Usage: /city plot [info|assign|unassign|take|takeable|motd|delete]");
 							} else {
 								player.sendMessage("Usage: /city plot [info|take|motd]");
 							}
@@ -910,7 +910,11 @@ public class CommandExec implements CommandExecutor {
 						}
 						
 						if (args[1].equalsIgnoreCase("info")) {
-							player.sendMessage(Messages.PlotInfo.get(Integer.toString(plot.id), DateFormat.getDateTimeInstance().format(plot.assignedOn), plot.citizen.getDisplayName(), (plot.isTakeable?"true":"false")));
+							if (plot.citizen!=null) {
+								player.sendMessage(Messages.PlotInfo.get(Integer.toString(plot.id), DateFormat.getDateTimeInstance().format(plot.assignedOn), plot.citizen.getDisplayName(), (plot.isTakeable?"true":"false")));
+							} else {
+								player.sendMessage(Messages.PlotInfo.get(Integer.toString(plot.id), "N/A", "N/A", (plot.isTakeable?"true":"false")));
+							}
 							return true;
 						}
 						
@@ -1223,6 +1227,20 @@ public class CommandExec implements CommandExecutor {
 				city.unban(playerId);
 				player.sendMessage(Messages.PlayerUnbannedConfirm.get(player.getName(), city.name));
 				GPPCities.gppc.log("Admin "+player.getName()+" unbanned "+args[2]+" from "+city.name);
+				return true;
+			}
+			
+			if (args[0].equalsIgnoreCase("reload")) {
+				if (!player.hasPermission("gppc.cityadmin.reload")) {
+					player.sendMessage(Messages.NoPermission.get());
+					return false;
+				}
+				
+				player.sendMessage("Reloading GPPCities... prepare for unforeseen consequences!");
+				GPPCities instance = GPPCities.gppc;
+				instance.onDisable();
+				instance.onEnable();
+				player.sendMessage("GPPCities reloaded!");
 				return true;
 			}
 		}
