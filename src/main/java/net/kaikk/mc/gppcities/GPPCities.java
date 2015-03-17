@@ -41,7 +41,9 @@ public class GPPCities extends JavaPlugin{
 		/* TODO
 		 * c plot info - allow cityadmins
 		 * c plot info - crash on unassigned plots
+		 * c spawn - add 5 seconds delay
 		 * */
+		
 		this.config = new Config();
 		// Inizialize database
 		try {
@@ -105,7 +107,7 @@ public class GPPCities extends JavaPlugin{
 		System.gc(); // garbage collector
 		log("Done.");
 	}
-	
+
 	void log (String msg) {
 		getLogger().info(msg);
 	}
