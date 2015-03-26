@@ -275,6 +275,22 @@ class City {
 		}
 	}
 	
+	/** set the motd */
+	synchronized void setAutojoin(boolean autojoin) {
+		try {
+			GPPCities.gppc.ds.dbCheck();
+			
+			Statement statement = GPPCities.gppc.ds.db.createStatement();
+
+			statement.executeUpdate("UPDATE gppc_cities SET isjoinable = "+(autojoin ? "1" : "0")+" WHERE id = "+this.claim.getID()+";");
+		} catch (SQLException e) {
+			e.getStackTrace();
+			GPPCities.gppc.log(Level.SEVERE, e.getMessage());
+			GPPCities.gppc.log(Level.SEVERE, "Unable to set motd for "+this.name);
+		}
+	}
+	
+	
 	// Citizens methods
 	synchronized void newCitizen(UUID id) {
 		this.newCitizen(id, (byte)0);
@@ -320,6 +336,7 @@ class City {
 	Citizen getCitizen(UUID id) {
 		return this.citizens.get(id);
 	}
+	
 	Citizen getCitizen(String name) {
 		for (Citizen citizen : this.citizens.values()) {
 			if (GPPCities.gppc.getServer().getOfflinePlayer(citizen.id).getName().equalsIgnoreCase(name)) {

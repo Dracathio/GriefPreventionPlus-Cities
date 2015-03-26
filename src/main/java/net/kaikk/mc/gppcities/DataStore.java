@@ -425,6 +425,7 @@ class DataStore {
 		gppc.getLogger().log(level, msg);
 	}
 
+	@SuppressWarnings("deprecation")
 	static Player getOnlinePlayer(String name) {
 		return GPPCities.gppc.getServer().getPlayer(name);
 	}

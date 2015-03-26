@@ -367,13 +367,13 @@ public class CommandExec implements CommandExecutor {
 				}
 				
 				if (args[1].equalsIgnoreCase("true")) {
-					city.isJoinable=true;
+					city.setAutojoin(true);
 					player.sendMessage(Messages.CityAutojoinOn.get());
 					GPPCities.gppc.log(player.getName()+" set "+city.name+" autjoin to true");
 					return true;
 				}
 				if (args[1].equalsIgnoreCase("false")) {
-					city.isJoinable=false;
+					city.setAutojoin(false);
 					player.sendMessage(Messages.CityAutojoinOff.get());
 					GPPCities.gppc.log(player.getName()+" set "+city.name+" autjoin to false");
 					return true;
@@ -437,14 +437,19 @@ public class CommandExec implements CommandExecutor {
 					return true;
 				}
 				
+				if (args.length==1) {
+					player.sendMessage("Usage: /city expel [CitizenName]");
+					return false;
+				}
+				
 				Citizen citizen = city.getCitizen(player.getUniqueId());
 				if (!citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Expel.perm)) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
 				
-				if (args.length==1) {
-					player.sendMessage("Usage: /city expel [CitizenName]");
+				if (citizen==city.getMayor()) {
+					player.sendMessage(Messages.MayorCannotLeave.get());
 					return false;
 				}
 				
@@ -563,7 +568,7 @@ public class CommandExec implements CommandExecutor {
 					return true;
 				}
 				
-				if (!city.getCitizen(player.getUniqueId()).checkPerm(CitizenPermission.Mayor.perm)) {
+				if (!city.getCitizen(player.getUniqueId()).checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm)) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
 				}
@@ -576,6 +581,11 @@ public class CommandExec implements CommandExecutor {
 				UUID playerId=GriefPreventionPlus.instance.resolvePlayerId(args[1]);
 				if (playerId==null) {
 					player.sendMessage(GriefPreventionPlus.instance.dataStore.getMessage(net.kaikk.mc.gpp.Messages.PlayerNotFound2));
+					return false;
+				}
+
+				if (city.getMayor()==city.getCitizen(playerId)) {
+					player.sendMessage(Messages.MayorCannotLeave.get());
 					return false;
 				}
 				

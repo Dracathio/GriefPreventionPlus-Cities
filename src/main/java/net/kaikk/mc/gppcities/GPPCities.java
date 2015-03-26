@@ -38,11 +38,6 @@ public class GPPCities extends JavaPlugin{
 		log("Loading...");
 		long loadingTime = System.currentTimeMillis();
 		gppc=this;
-		/* TODO
-		 * c plot info - allow cityadmins
-		 * c plot info - crash on unassigned plots
-		 * c spawn - add 5 seconds delay
-		 * */
 		
 		this.config = new Config();
 		// Inizialize database

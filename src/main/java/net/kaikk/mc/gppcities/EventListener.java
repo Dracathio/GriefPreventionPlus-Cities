@@ -33,7 +33,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class EventListener implements Listener {
-	
 	@EventHandler(priority=EventPriority.LOWEST)
 	public void onPlayerMove(PlayerMoveEvent event) {
 		PlayerData playerData=GPPCities.gppc.ds.playerData.get(event.getPlayer().getUniqueId()); 
