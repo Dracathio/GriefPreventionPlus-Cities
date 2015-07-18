@@ -25,34 +25,37 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import net.kaikk.mc.gpp.Claim;
+import net.kaikk.mc.gpp.ClaimPermission;
 import net.kaikk.mc.gpp.GriefPreventionPlus;
+import net.kaikk.mc.gppcities.City.Citizen;
 
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 class DataStore {
-	GPPCities gppc;
+	GPPCities instance;
 	
 	private String dbUrl;
 	private String username;
 	private String password;
 	
-	protected Connection db = null;
-	protected ConcurrentHashMap<Integer, City> citiesMap = new ConcurrentHashMap<>();;
-	protected ConcurrentHashMap<UUID, PlayerData> playerData = new ConcurrentHashMap<>();
+	private Connection database = null;
+	HashMap<Integer, City> citiesMap = new HashMap<Integer, City>();
+	HashMap<UUID, PlayerData> playerData = new HashMap<UUID, PlayerData>();
 
-	protected ArrayList<UUID> cityChat = new ArrayList<UUID>();
-	protected ArrayList<UUID> cityChatSpy = new ArrayList<UUID>();
+	ArrayList<UUID> cityChat = new ArrayList<UUID>();
+	ArrayList<UUID> cityChatSpy = new ArrayList<UUID>();
 	
-	DataStore(GPPCities gpp, String url, String username, String password) throws Exception {
-		this.gppc=gpp;
+	DataStore(GPPCities instance, String url, String username, String password) throws Exception {
+		this.instance=instance;
 		this.dbUrl = url;
 		this.username = username;
 		this.password = password;
@@ -73,7 +76,7 @@ class DataStore {
 		}
 		
 		try {
-			Statement statement = db.createStatement();
+			Statement statement = database.createStatement();
 			
 			ResultSet results = statement.executeQuery("SHOW TABLES LIKE \"gpp_claims\";");
 			if(results.next()) {
@@ -127,100 +130,110 @@ class DataStore {
 		}
 
 		try {
-			Statement statement = db.createStatement();
+			Statement statement = database.createStatement();
 			// delete all orphan cities and plots from the database
 			// load cities and plots data from the database
 			
-			long loadCount=0;
+			long count=0;
 			
 			// Load cities
 			this.dbCheck();
-			gpp.log("Loading cities...");
+			instance.log("Loading cities...");
 			ResultSet results = statement.executeQuery("SELECT id, cname, creationDate, motdRes, motdOut, isJoinable, spawnX, spawnY, spawnZ, perms FROM gppc_cities;");
-			Claim claim;
-			City city;
+
 			while (results.next()) {
-				claim = GriefPreventionPlus.instance.dataStore.getClaim(results.getInt(1));
+				Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(1));
 				
 				if (claim==null) {
-					gpp.log(Level.WARNING, "Skipping orphan city ID("+results.getInt(1)+")");
+					instance.log(Level.WARNING, "Skipping orphan city ID("+results.getInt(1)+")");
 				} else {
-					this.citiesMap.put(results.getInt(1), new City(claim, results.getString(2), new Date(results.getTimestamp(3).getTime()), results.getString(4), results.getString(5), results.getBoolean(6), new Location(claim.world, results.getInt(7), results.getInt(8), results.getInt(9)), results.getInt(10)));
-					loadCount++;
+					this.citiesMap.put(results.getInt(1), new City(claim, results.getString(2), new Date(results.getTimestamp(3).getTime()), results.getString(4), results.getString(5), results.getBoolean(6), new Location(claim.getWorld(), results.getInt(7), results.getInt(8), results.getInt(9)), results.getInt(10)));
+					count++;
 				}
 			}
-			gpp.log("Loaded "+loadCount+" cities.");
-			loadCount=0;
+			instance.log("Loaded "+count+" cities.");
+			count=0;
 			
 			
 			// Load citizens
 			this.dbCheck();
-			gpp.log("Loading citizens...");
+			instance.log("Loading citizens...");
 			results = statement.executeQuery("SELECT id, cid, perms, joinedOn FROM gppc_citizens;");
 			while (results.next()) {
-				city = this.citiesMap.get(results.getInt(2));
+				City city = this.citiesMap.get(results.getInt(2));
 				if (city==null) {
-					gpp.log(Level.WARNING, "Skipping orphan citizen UUID["+toUUID(results.getBytes(1)).toString()+"]");
+					instance.log(Level.WARNING, "Skipping orphan citizen UUID["+toUUID(results.getBytes(1)).toString()+"]");
 				} else {
-					city.citizens.put(toUUID(results.getBytes(1)), new Citizen(toUUID(results.getBytes(1)), results.getByte(3), new Date(results.getTimestamp(4).getTime())));
-					loadCount++;
+					city.getCitizens().put(toUUID(results.getBytes(1)), city.new Citizen(toUUID(results.getBytes(1)), results.getByte(3), new Date(results.getTimestamp(4).getTime())));
+					count++;
 				}
 			}
-			gpp.log("Loaded "+loadCount+" citizens.");
-			loadCount=0;
+			instance.log("Loaded "+count+" citizens.");
+			count=0;
 			
 			// Load plots
 			this.dbCheck();
-			gpp.log("Loading plots...");
+			instance.log("Loading plots...");
 
 			Citizen citizen;
 			results = statement.executeQuery("SELECT id, cid, citizen, motd, assignedOn, isTakeable FROM gppc_plots;");
 			while (results.next()) {
-				city = this.citiesMap.get(results.getInt(2));
+				City city = this.citiesMap.get(results.getInt(2));
 				
 				if (city==null) {
-					gpp.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing city id("+results.getInt(2)+"))");
+					instance.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing city id("+results.getInt(2)+"))");
 				} else {
-					claim = GriefPreventionPlus.instance.dataStore.getClaim(results.getInt(2));
+					Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(2));
 					if (claim==null) {
-						gpp.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing city claim id("+results.getInt(2)+"))");
+						instance.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing city claim id("+results.getInt(2)+"))");
 					} else {
 						boolean skip=true;
-						for (Claim subclaim : claim.children) {
+						for (Claim subclaim : claim.getChildren()) {
 							if (subclaim.getID()==results.getInt(1)) {
 								if (results.getBytes(3)==null) {
 									citizen=null;
 								} else {
-									citizen=city.getCitizen(GriefPreventionPlus.instance.getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
+									citizen=city.getCitizen(GriefPreventionPlus.getInstance().getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
 								}
 								
-								city.plots.put(results.getInt(1), new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
+								city.getPlots().put(results.getInt(1), city.new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
 								
-								loadCount++;
+								count++;
 								skip=false;
 								break;
 							}
 						}
 						if (skip) {
-							gpp.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing plot subclaim)");
+							instance.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing plot subclaim)");
 						}
 					}
 				}
 			}
-			gpp.log("Loaded "+loadCount+" plots.");
+			instance.log("Loaded "+count+" plots.");
 			
 			// Load banned players (from Mayors who don't want this player on their city)
 			this.dbCheck();
 			results = statement.executeQuery("SELECT * FROM gppc_bans;");
 			while (results.next()) {
-				city = this.citiesMap.get(results.getLong(2));
+				City city = this.citiesMap.get(results.getLong(2));
 				
 				if (city!=null) {
-					city.bannedPlayers.add(toUUID(results.getBytes(1)));
+					city.getBannedPlayers().add(toUUID(results.getBytes(1)));
 				}
 			}
-
+			
 			statement.close();
+			
+			for (Entry<Integer,City> entry : this.citiesMap.entrySet()) {
+				if (!entry.getValue().isValid()) {
+					instance.log(Level.WARNING, "Removed city "+entry.getValue().getName()+": city is invalid");
+					try {
+						this.deleteCity(entry.getValue());
+					} catch(Exception e) {
+						this.citiesMap.remove(entry.getKey());
+					}
+				}
+			}
 		} catch(Exception e) {
 			log(Level.SEVERE, "Unable to read the database. Details:");
 			throw e;
@@ -254,14 +267,17 @@ class DataStore {
 
 		try {
 			this.dbCheck();
-			Statement statement = db.createStatement();
+			Statement statement = database.createStatement();
 			
 			statement.executeUpdate("INSERT INTO gppc_cities (id, cname, spawnX, spawnY, spawnZ, perms) VALUES ("+claim.getID()+", \""+name+"\", "+loc.getBlockX()+", "+loc.getBlockY()+", "+loc.getBlockZ()+", 0);");
+			
+			// Cities have public permission set by default
+			claim.setPermission(GriefPreventionPlus.UUID0, ClaimPermission.ENTRY);
 			
 			this.citiesMap.put(claim.getID(), new City(claim, name, mayor, loc));
 		} catch(SQLException e) {
 			e.getStackTrace();
-			log(Level.SEVERE, "Unable to create new city for claim id "+claim.getID()+" named '"+name+"' created by "+gppc.getServer().getPlayer(mayor).getName());
+			log(Level.SEVERE, "Unable to create new city for claim id "+claim.getID()+" named '"+name+"' created by "+instance.getServer().getPlayer(mayor).getName());
 			log(Level.SEVERE, e.getMessage());
 			return "An error occurred with the database.";
 		}
@@ -272,26 +288,28 @@ class DataStore {
 	synchronized String deleteCity(City city) {
 		try {
 			this.dbCheck();
-			Statement statement = db.createStatement();
-			Integer id=city.claim.getID();
+			Statement statement = database.createStatement();
+			Integer id=city.getClaim().getID();
 			statement.executeUpdate("DELETE FROM gppc_citizens WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_plots WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_bans WHERE cid = "+id);
 			statement.executeUpdate("DELETE FROM gppc_cities WHERE id = "+id);
 			
 			// remove bonus claimable blocks for the mayor
-			int blocks=GPPCities.gppc.config.ClaimBlocksPerCitizen*city.citizens.size();
+			int blocks=GPPCities.getInstance().config.ClaimBlocksPerCitizen*city.getCitizens().size();
 			if (blocks>0) {
-				DataStore.adjustClaimableBlocks(city.getMayor().id, -blocks);
-				GPPCities.gppc.log(Level.INFO, "Mayor "+city.getMayor().getName()+" lost "+blocks+" claimable blocks.");
+				if (city.isValid()) {
+					DataStore.adjustClaimableBlocks(city.getMayor().getId(), -blocks);
+					GPPCities.getInstance().log(Level.INFO, "Mayor "+city.getMayor().getName()+" lost "+blocks+" claimable blocks.");
+				}
 			}
 			
-			city.claim.dropPermission("[gpc.c"+id+"]");
-			gppc.getServer().broadcastMessage(Messages.CityHasBeenDisbanded.get(city.name));
+			city.getClaim().dropPermission("[gpc.c"+id+"]");
+			instance.getServer().broadcastMessage(Messages.CityHasBeenDisbanded.get(city.getName()));
 			this.citiesMap.remove(id);
 		} catch(SQLException e) {
 			e.getStackTrace();
-			log(Level.SEVERE, "Unable to delete city id "+city.name);
+			log(Level.SEVERE, "Unable to delete city id "+city.getName());
 			log(Level.SEVERE, e.getMessage());
 			return "An error occurred with the database. Contact an administrator!";
 		}
@@ -304,7 +322,7 @@ class DataStore {
 	 * @return the citizen's city, null otherwise*/
 	City getCity(UUID id) {
 		for (City city : this.citiesMap.values()) {
-			if (city.citizens.containsKey(id)) {
+			if (city.getCitizens().containsKey(id)) {
 				return city;
 			}
 		}
@@ -316,28 +334,44 @@ class DataStore {
 	 * */
 	City getCity(String name) {
 		for (City city : this.citiesMap.values()) {
-			if (city.name.equalsIgnoreCase(name)) {
+			if (city.getName().equalsIgnoreCase(name)) {
+				if (!city.isValid()) {
+					this.instance.log(Level.WARNING, "Removed city "+city.getName()+": city is invalid");
+					this.deleteCity(city);
+					return null;
+				}
+				
 				return city;
 			}
 		}
 		return null;
 	}
 	
+	City getCity(Claim claim) {
+		return this.getCity(claim.getParent()!=null?claim.getParent().getID():claim.getID());
+	}
+	
+	City getCity(int id) {
+		return this.citiesMap.get(id);
+	}
+	
+
+	
 	synchronized void dbCheck() throws SQLException {
-		if(this.db == null || this.db.isClosed()) {
+		if(this.database == null || this.database.isClosed()) {
 			Properties connectionProps = new Properties();
 			connectionProps.put("user", this.username);
 			connectionProps.put("password", this.password);
 			
-			this.db = DriverManager.getConnection(this.dbUrl, connectionProps); 
+			this.database = DriverManager.getConnection(this.dbUrl, connectionProps); 
 		}
 	}
 	
 	synchronized void dbClose()  {
 		try {
-			if (!this.db.isClosed()) {
-				this.db.close();
-				this.db=null;
+			if (!this.database.isClosed()) {
+				this.database.close();
+				this.database=null;
 			}
 		} catch (SQLException e) {
 			
@@ -350,19 +384,7 @@ class DataStore {
 	}
 	
 	public static String locationToString(Location location, boolean yaw) {
-		StringBuilder stringBuilder = new StringBuilder(location.getWorld().getName());
-		stringBuilder.append(";");
-		stringBuilder.append(location.getBlockX());
-		stringBuilder.append(";");
-		stringBuilder.append(location.getBlockY());
-		stringBuilder.append(";");
-		stringBuilder.append(location.getBlockZ());
-		if (yaw) {
-			stringBuilder.append(";");
-			stringBuilder.append((int) location.getYaw());
-		}
-		
-		return stringBuilder.toString();
+		return location.getWorld().getName()+";"+location.getBlockX()+";"+location.getBlockY()+";"+location.getBlockZ()+(yaw?";"+((int) location.getYaw()):"");
 	}
 	
 	/** turns a location string back into a location */
@@ -376,7 +398,7 @@ class DataStore {
 		}
 	    
 		//identify world the claim is in
-		World world = GPPCities.gppc.getServer().getWorld(elements[0]);
+		World world = GPPCities.getInstance().getServer().getWorld(elements[0]);
 		if(world == null) {
 			throw new Exception("World not found: \"" + elements[0] + "\"");
 		}
@@ -388,7 +410,6 @@ class DataStore {
 	    
 	    float yaw=0f;
 	    if (elements.length==5) {
-	    	
 	    	yaw=Float.parseFloat(elements[4]);
 	    }
 	    
@@ -397,7 +418,7 @@ class DataStore {
 	
 	void cityChatSpy(String message, City city) {
 		for (UUID uuid : this.cityChatSpy) {
-			Player spy = gppc.getServer().getPlayer(uuid);
+			Player spy = instance.getServer().getPlayer(uuid);
 			if (spy!=null && city.getCitizen(uuid)!=null) {
 				spy.sendMessage(message);
 			}
@@ -422,12 +443,12 @@ class DataStore {
 	
 	/** log into console */
 	private void log(Level level, String msg) {
-		gppc.getLogger().log(level, msg);
+		instance.getLogger().log(level, msg);
 	}
 
 	@SuppressWarnings("deprecation")
 	static Player getOnlinePlayer(String name) {
-		return GPPCities.gppc.getServer().getPlayer(name);
+		return GPPCities.getInstance().getServer().getPlayer(name);
 	}
 
 	public static UUID toUUID(byte[] bytes) {
@@ -452,9 +473,13 @@ class DataStore {
 	}
 	
 	public static void adjustClaimableBlocks(UUID playerId, int adjustment) {
-		net.kaikk.mc.gpp.PlayerData playerData = GriefPreventionPlus.instance.dataStore.getPlayerData(playerId);
+		net.kaikk.mc.gpp.PlayerData playerData = GriefPreventionPlus.getInstance().getDataStore().getPlayerData(playerId);
 		playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + adjustment);
-		GriefPreventionPlus.instance.dataStore.savePlayerData(playerId, playerData);
+		GriefPreventionPlus.getInstance().getDataStore().savePlayerData(playerId, playerData);
+	}
+
+	Connection getDatabase() {
+		return database;
 	}
 }
 

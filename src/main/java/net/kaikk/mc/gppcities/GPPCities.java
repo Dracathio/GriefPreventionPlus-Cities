@@ -27,17 +27,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 
 public class GPPCities extends JavaPlugin{
-	public static GPPCities gppc;
-	public final EventListener eventListener = new EventListener();
-	DataStore ds;
+	private static GPPCities instance;
+	private EventListener eventListener;
+	private DataStore dataStore;
 	
-	protected Config config;
+	Config config;
 
 	@Override
 	public void onEnable() {
 		log("Loading...");
 		long loadingTime = System.currentTimeMillis();
-		gppc=this;
+		instance=this;
 		
 		this.config = new Config();
 		// Inizialize database
@@ -49,11 +49,11 @@ public class GPPCities extends JavaPlugin{
 			String dbname=gpConfig.getString("GriefPrevention.Database.UserName", "");
 			String dbpassword=gpConfig.getString("GriefPrevention.Database.Password", "");
 			
-			if (dbname.isEmpty() || dbpassword.isEmpty() || dbaddress.isEmpty()) {
+			if (dbname.isEmpty() || dbaddress.isEmpty()) {
 				log("Database settings are missing! This plugin needs GriefPreventionPlus.");
 				return;
 			} else {
-				ds = new DataStore(gppc, dbaddress, dbname, dbpassword);
+				dataStore = new DataStore(instance, dbaddress, dbname, dbpassword);
 			}
 		} catch (Exception e) {
 			log(Level.SEVERE, e.getMessage());
@@ -61,7 +61,9 @@ public class GPPCities extends JavaPlugin{
 			log("Plugin disabled");
 			return;
 		}
-
+		
+		this.eventListener=new EventListener(this);
+		
 		this.getCommand("city").setExecutor(new CommandExec());
 		this.getCommand("citychat").setExecutor(new CommandExec());
 		this.getCommand("citychatspy").setExecutor(new CommandExec());
@@ -72,18 +74,18 @@ public class GPPCities extends JavaPlugin{
 		pm.registerEvents(this.eventListener, this);
 		
 		// redirect some GP command to GPC's Executor
-		GPPCities.gppc.getServer().getPluginCommand("abandonclaim").setExecutor(new CommandExec());
-		GPPCities.gppc.getServer().getPluginCommand("abandontoplevelclaim").setExecutor(new CommandExec());
-		GPPCities.gppc.getServer().getPluginCommand("abandonallclaims").setExecutor(new CommandExec());
-		GPPCities.gppc.getServer().getPluginCommand("deleteclaim").setExecutor(new CommandExec());
-		GPPCities.gppc.getServer().getPluginCommand("deleteallclaims").setExecutor(new CommandExec());
-		GPPCities.gppc.getServer().getPluginCommand("transferclaim").setExecutor(new CommandExec());
+		this.getServer().getPluginCommand("abandonclaim").setExecutor(new CommandExec());
+		this.getServer().getPluginCommand("abandontoplevelclaim").setExecutor(new CommandExec());
+		this.getServer().getPluginCommand("abandonallclaims").setExecutor(new CommandExec());
+		this.getServer().getPluginCommand("deleteclaim").setExecutor(new CommandExec());
+		this.getServer().getPluginCommand("deleteallclaims").setExecutor(new CommandExec());
+		this.getServer().getPluginCommand("transferclaim").setExecutor(new CommandExec());
 		
 		Messages.load();
 		
 		// Schedule InactiveCitiesCheck
 		if (this.config.InactivityDays>0 && this.config.InactivityCheckMinutes>0) {
-			new InactivityCheckTask(gppc).runTaskTimer(gppc, 200, (this.config.InactivityCheckMinutes*1200));
+			new InactivityCheckTask(instance).runTaskTimer(instance, 500, 4);
 		}
 		
 		log("Loaded ("+((System.currentTimeMillis()-loadingTime)/1000.000)+" seconds)");
@@ -92,13 +94,13 @@ public class GPPCities extends JavaPlugin{
 	@Override
 	public void onDisable() {
 		log("Unloading...");
-		if (this.ds!=null) {
-			this.ds.citiesMap=null;
-			this.ds.playerData=null;
-			this.ds.dbClose();
-			this.ds=null;
+		if (this.dataStore!=null) {
+			this.dataStore.citiesMap=null;
+			this.dataStore.playerData=null;
+			this.dataStore.dbClose();
+			this.dataStore=null;
 		}
-		gppc=null;
+		instance=null;
 		System.gc(); // garbage collector
 		log("Done.");
 	}
@@ -111,5 +113,12 @@ public class GPPCities extends JavaPlugin{
 		getLogger().log(level, msg);
 	}
 
+	public static GPPCities getInstance() {
+		return instance;
+	}
+
+	public DataStore getDataStore() {
+		return dataStore;
+	}
 }
 

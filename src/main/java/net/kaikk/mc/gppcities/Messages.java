@@ -31,7 +31,7 @@ public enum Messages {
 	CantRunCommandYouHaveCity, CitiesList, CitiesListFormat, CitiesNotAvailableOnAdminClaims, CitizenExpelled, CityAutojoinNotPermitted,
 	CityAutojoinOff, CityAutojoinOn, CityHasBeenDisbanded, CityInvitationAcceptOrReject, CityInvitationAccepted, CityInvitationExpiresOn,
 	CityInvitationHasBeenAccepted, CityInvitationHasBeenRejected, CityInvitationNoPending, CityInvitationReceived, CityInvitationRejected,
-	CityInvitationSent, CityNotExists, CitySpawnInvalid, CitySpawnMissing, CitySpawnSet, ClaimAlreadyACity, InviteNotAllowed,
+	CityInvitationSent, CityNotExists, CitySpawnInvalid, CitySpawnMissing2, CitySpawnSet, ClaimAlreadyACity, InviteNotAllowed,
 	MotdHasBeenSet, MotdOut, MotdRes, MotdSet, NewCity, NoCities, NoPermission, NotAuthorized, PlayerAlreadyOnAnotherCity, PlayerIsNotACitizen,
 	PlayerJoinedYourCity, PlayerLeftCity, PlayerOfflineOrWrongName, PlotAssigned, PlotTakeNotAllowed, PlotTakeYouHaveAPlotAlready,
 	PlotCreated, PlotDeleted, PlotMotdEdited, PlotUnassigned, StandOnPlotOrSubClaim, ThisCityNotExists, WelcomeBackTo, WelcomeTo,
@@ -41,13 +41,13 @@ public enum Messages {
 	CitizensList, CitizensListFormat, CitizenInfo, ClaimTooSmall, YouGotAPlot, YouLostAPlot, CitizenPermissions, CityInfo, YouJoinedCity,
 	YouAreBanned, PlayerIsBanned, NewMayor, CityChatFormat, CityNameInvalid, CitySameNameExists, CityRenamed, CityChatOn, CityChatOff,
 	TakeableOn, TakeableOff, PlayerBannedConfirm, PlayerUnbannedConfirm, PlotInfo, MayorCannotLeave, YouOnUnassignedPlot,
-	YouOnTakeablePlot, YouOnJoinableCity;
+	YouOnTakeablePlot, YouOnJoinableCity, CitySpawnTeleportDelay, CitySpawnTeleportCancelled, CitySpawnTeleported;
 
 	static private HashMap<Messages, String> messages = new HashMap<Messages, String>();
 	final static String messagesFilePath = "plugins" + File.separator + "GriefPreventionPlus-Cities" + File.separator + "messages.yml";
 	
 	static void defaults() {
-		messages.put(Messages.CantRunCommandYouHaveCity, "&cYou can't run this command: claim ID &b{0} &cis a city named &b{3}&c!");
+		messages.put(Messages.CantRunCommandYouHaveCity, "&cYou can't run this command: claim ID &b{0} &cis a city named &b{1}&c!");
 		messages.put(Messages.CitiesList, "&aCities list:");
 		messages.put(Messages.CitiesListFormat, "{0} [&e{1}&f]");
 		messages.put(Messages.CitiesNotAvailableOnAdminClaims, "&cCities are not available on admin claims.");
@@ -67,7 +67,7 @@ public enum Messages {
 		messages.put(Messages.CityInvitationSent, "&aCity invitation sent to &b{0}.");
 		messages.put(Messages.CityNotExists, "&cThe city &b{0} &cdoes not exist.");
 		messages.put(Messages.CitySpawnInvalid, "&cCity spawn must be located inside your city.");
-		messages.put(Messages.CitySpawnMissing, "&cYour city's spawn is missing.");
+		messages.put(Messages.CitySpawnMissing2, "&c{0}'s spawn is missing.");
 		messages.put(Messages.CitySpawnSet, "&aCity spawn set.");
 		messages.put(Messages.ClaimAlreadyACity, "&cThis claim is already a city.");
 		messages.put(Messages.InviteNotAllowed, "&cYou're not allowed to invite people.");
@@ -146,6 +146,9 @@ public enum Messages {
 		messages.put(Messages.YouOnUnassignedPlot, "&bYou're on an unassigned plot.");
 		messages.put(Messages.YouOnTakeablePlot, "&bYou can take this plot with /c plot take.");
 		messages.put(Messages.YouOnJoinableCity, "&bYou can join this city with /c join {0}.");
+		messages.put(Messages.CitySpawnTeleportDelay, "&bYou'll be teleported to {0}'s spawn in 5 seconds.");
+		messages.put(Messages.CitySpawnTeleportCancelled, "&bTeleport cancelled.");
+		messages.put(Messages.CitySpawnTeleported, "&bTeleported to {0}'s spawn.");
 	}
 	
 	static void load() {
@@ -159,7 +162,7 @@ public enum Messages {
 			String sendMessage = messages.get(message);
 			
 			if (sendMessage==null) {
-				GPPCities.gppc.log(Level.WARNING, "Missing message ID "+message.toString());
+				GPPCities.getInstance().log(Level.WARNING, "Missing message ID "+message.toString());
 			}
 			
 			String mess=messagesFile.getString(message.toString());
@@ -173,14 +176,14 @@ public enum Messages {
 		try {
 			messagesFile.save(Messages.messagesFilePath);
 		} catch(IOException exception) {
-			GPPCities.gppc.log("Unable to write messages file at "+Messages.messagesFilePath);
+			GPPCities.getInstance().log("Unable to write messages file at "+Messages.messagesFilePath);
 		}
 	}
 	
 	public String get(String... strs) {
 		String message = messages.get(this);
 		if (message==null) {
-			GPPCities.gppc.log(Level.WARNING, "Missing message ID "+this.toString());
+			GPPCities.getInstance().log(Level.WARNING, "Missing message ID "+this.toString());
 			return "Missing message! Please contact a server admin.";
 		}
 		

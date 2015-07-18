@@ -14,86 +14,97 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package net.kaikk.mc.gppcities;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+
+import net.kaikk.mc.gppcities.City.Citizen;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class InactivityCheckTask  extends BukkitRunnable {
-    private final GPPCities gpp;
-    
-    public InactivityCheckTask(GPPCities gpp) {
-        this.gpp = gpp;
-    }
-    
+class InactivityCheckTask extends BukkitRunnable {
+	private final GPPCities instance;
+	private Iterator<City> iterator;
+	private int removedCitizens, removedCities, removedMayors;
+
+	InactivityCheckTask(GPPCities instance) {
+		this.instance = instance;
+	}
+
 	@Override
 	public void run() {
-		gpp.log("Inactivity check task start!");
-		long time=System.currentTimeMillis();
-		int removedCitizens=0;
-		int removedMayors=0;
-		int removedCities=0;
-		for (City city : gpp.ds.citiesMap.values()) {
-			ArrayList<Citizen> citizensLastPlayed = new ArrayList<Citizen>(city.citizens.values());
-			Collections.sort(citizensLastPlayed, Collections.reverseOrder(new CitizenLastPlayedComparator()));
-			
-			ArrayList<Citizen> citizensJoinedOn = new ArrayList<Citizen>(city.citizens.values());
-			Collections.sort(citizensJoinedOn, new CitizenJoinedOnComparator());
-			
-			for (Citizen citizen : citizensLastPlayed) {
-				if (citizen.getLastPlayedDays()<=gpp.config.InactivityDays) {
-					break;
-				}
-				boolean found=true;
-				if (citizen.checkPerm(CitizenPermission.Mayor)) {
-					gpp.log("Removing mayor "+citizen.getName()+" from "+city.name);
-					found=false;
-					for (Citizen newMayor : citizensJoinedOn) {
-						if (newMayor.getLastPlayedDays()<=gpp.config.InactivityDays) {
-							if (newMayor.checkPerm(CitizenPermission.Assistant)) {
-								found=true;
-								gpp.log("Assigning "+city.name+" mayor to "+newMayor.getName());
-								city.changeOwner(newMayor.id);
-								removedMayors++;
-								break;
-							}
-						}
-					}
+		if (this.iterator==null) {
+			this.init();
+		}
 
-					if (!found) {
-						for (Citizen newMayor : citizensJoinedOn) {
-							found=true;
-							gpp.log("Assigning "+city.name+" mayor to "+newMayor.getName());
-							city.changeOwner(newMayor.id);
-							removedMayors++;
-							break;
-						}
-					}
-					
-					if (!found) {
-						gpp.log("Removing city named "+city.name);
-						gpp.ds.deleteCity(city);
-						removedCities++;
-						break;
-					}
-				} else {
-					gpp.log("Removing citizen "+citizen.getName()+" from "+city.name);
+		try {
+			if (this.iterator.hasNext()) {
+				City city=this.iterator.next();
+				if (city.getCitizens().size()==0) {// empty city...
+					this.instance.log("Removing empty city: "+city.getName());
+					this.instance.getDataStore().deleteCity(city);
+					this.removedCities++;
+					return;
 				}
 				
-				if (found) {
-					city.removeCitizen(citizen.id);
+				Citizen expiredMayor=null;
+				
+				for (Citizen citizen : city.getCitizens().values()) {
+					if(citizen.getLastPlayedDays()>this.instance.config.InactivityDays) {
+						// citizen expired
+						if (citizen.checkPerm(CitizenPermission.Mayor)) {
+							// this citizen is the mayor, let's ignore him atm
+							expiredMayor=citizen;
+						} else {
+							instance.log("Removing citizen "+citizen.getName()+" from "+city.getName());
+							city.removeCitizen(citizen.getId());
+							this.removedCitizens++;
+						}
+					}
 				}
-				removedCitizens++;
+				
+				if (expiredMayor!=null) {
+					// the mayor is gone... need to replace him with someone else...
+					if (city.getCitizens().size()==1) {
+						// the mayor is alone...
+						this.instance.log("Removing expired city: "+city.getName());
+						this.instance.getDataStore().deleteCity(city);
+						this.removedCities++;
+					} else {
+						// change the city owner
+						Citizen newMayor=null;
+						newMayor=city.getOldestAssistant();
+						if (newMayor==null) {
+							newMayor=city.getOldestCitizen();
+						}
+						this.instance.log("Removing old mayor "+expiredMayor.getName()+" from "+city.getName()+". New mayor is "+newMayor.getName());
+						city.changeOwner(newMayor.getId());
+						city.removeCitizen(expiredMayor.getId());
+						this.removedMayors++;
+					}
+				}
+				
+			} else {
+				// summary
+				this.instance.log("Inactivity Check Task Done! "
+						+ ((this.removedCitizens!=0||this.removedMayors!=0||this.removedCities!=0) ? "Removed "+this.removedCitizens+" citizens, "+this.removedMayors+" mayors, "+this.removedCities+" cities." : ""));
+				
+				// reschedule
+				this.cancel();
+				new InactivityCheckTask(this.instance).runTaskTimer(this.instance, (this.instance.config.InactivityCheckMinutes*1200), 4);
 			}
+		} catch (ConcurrentModificationException e) {
+			this.instance.log("Inactivity Check Task detected a modification and needs a restart...");
+			this.cancel();
+			new InactivityCheckTask(this.instance).runTaskTimer(this.instance, 100, 4);
 		}
-		
-		gpp.log("Inactivity check done in "+((System.currentTimeMillis()-time)/1000.00)+" seconds");
-		if (removedCitizens!=0||removedMayors!=0||removedCities!=0) {
-			gpp.log("Removed "+removedCitizens+" citizens, "+removedMayors+" mayors, "+removedCities+" cities.");
-		}
+	}
+
+	void init() { // init the iterator
+		this.instance.log("Inactivity Check Task start!");
+		this.iterator=this.instance.getDataStore().citiesMap.values().iterator();
 	}
 }

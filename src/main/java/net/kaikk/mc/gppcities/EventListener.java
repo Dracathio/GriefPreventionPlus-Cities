@@ -19,135 +19,113 @@
 package net.kaikk.mc.gppcities;
 
 import net.kaikk.mc.gpp.Claim;
-import net.kaikk.mc.gpp.GriefPreventionPlus;
+import net.kaikk.mc.gpp.events.ClaimEnterEvent;
+import net.kaikk.mc.gpp.events.ClaimExitEvent;
+import net.kaikk.mc.gpp.events.ClaimFromToEvent;
+import net.kaikk.mc.gppcities.City.Plot;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class EventListener implements Listener {
-	@EventHandler(priority=EventPriority.LOWEST)
-	public void onPlayerMove(PlayerMoveEvent event) {
-		PlayerData playerData=GPPCities.gppc.ds.playerData.get(event.getPlayer().getUniqueId()); 
-		
-		// Let's skip this event if the last event for this player was less than 1 sec ago (better plugin's performances)
-		if (System.currentTimeMillis() - playerData.lastAction < 1000) {
-			return;
-		}
-		
-		Claim claim = GriefPreventionPlus.instance.dataStore.getClaimAt(event.getTo(), false, playerData.lastClaim);
-		if (claim != null){
-			Claim pClaim = claim;
-			if (claim.parent != null) {
-				pClaim = claim.parent;
-			}
-			
-			if (pClaim.isAdminClaim() && !GPPCities.gppc.config.AdminClaimMessage) {
-				playerData.action(null, null);
-				return;
-			}
-			
-			if (playerData.lastPlot != claim) {
-				City city = GPPCities.gppc.ds.citiesMap.get(pClaim.getID());
-				if (playerData.lastClaim != pClaim) {
-					if (city != null){
-						if (city.getCitizen(event.getPlayer().getUniqueId())!=null) {
-							event.getPlayer().sendMessage(Messages.WelcomeBackTo.get(city.name));
-							if (city.motdRes!=null && !city.motdRes.isEmpty()) {
-								event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a"+city.motdRes));
-							}
-						} else {
-							event.getPlayer().sendMessage(Messages.WelcomeTo.get(city.name));
-							if (city.motdOut!=null && !city.motdOut.isEmpty()) {
-								event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a"+city.motdOut));
-							}
-							
-							if (city.isJoinable && GPPCities.gppc.ds.getCity(event.getPlayer().getUniqueId())==null) {
-								event.getPlayer().sendMessage(Messages.YouOnJoinableCity.get(city.name));
-							}
-						}
-					
-					} else {
-						event.getPlayer().sendMessage(Messages.YouOnClaim.get(claim.getOwnerName()));
-					}
-				}
-				
-				playerData.action(pClaim, claim);
+@SuppressWarnings("deprecation")
+class EventListener implements Listener {
+	private GPPCities instance;
+	
+	EventListener(GPPCities instance) {
+		this.instance = instance;
+	}
 
-				if (city != null && playerData.lastPlot != playerData.lastClaim){
-					Plot plot = city.getPlot(claim);
-					if (plot!=null) {
-						if (plot.citizen != null) {
-							event.getPlayer().sendMessage(Messages.YouOnPlot.get(plot.citizen.getDisplayName()));
-						} else {
-							event.getPlayer().sendMessage(Messages.YouOnUnassignedPlot.get());
-							
-							Citizen citizen = city.getCitizen(event.getPlayer().getUniqueId());
-							if (plot.isTakeable && citizen!=null && !city.citizenHasAssignedPlot(citizen)) {
-								event.getPlayer().sendMessage(Messages.YouOnTakeablePlot.get());
-							}
-						}
-						if (!plot.motd.isEmpty()) {
-							event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a"+plot.motd));
-						}
-					}
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	public void onClaimEnter(ClaimEnterEvent event) {
+		Claim claim=event.getClaim();
+		if (!claim.isAdminClaim()) {
+			City city=this.instance.getDataStore().getCity(claim);
+			if (city!=null) {
+				city.playerEnterMessage(event.getPlayer());
+			} else {
+				event.getPlayer().sendMessage(Messages.YouOnClaim.get(claim.getOwnerName()));
+			}
+		}
+	}
+	
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	public void onClaimExit(ClaimExitEvent event) {
+		if (!event.getClaim().isAdminClaim()) {
+			event.getPlayer().sendMessage(Messages.YouOnWilderness.get());
+		}
+	}
+	
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	public void onClaimFromTo(ClaimFromToEvent event) {
+		Claim claim=event.getNewClaim();
+		Claim oldClaim=event.getOldClaim();
+		City city=this.instance.getDataStore().getCity(claim);
+		if (claim.getTopClaimID()!=oldClaim.getTopClaimID()) {
+			// two adiacent claims
+			if (city!=null) {
+				city.playerEnterMessage(event.getPlayer());
+			} else {
+				if (!claim.isAdminClaim()) {
+					event.getPlayer().sendMessage(Messages.YouOnClaim.get(claim.getOwnerName()));
 				}
 			}
 		} else {
-			if (playerData.lastClaim!=null) {
-				event.getPlayer().sendMessage(Messages.YouOnWilderness.get());
-				playerData.action(null, null);
+			if (city!=null) {
+				// same city, different plots
+				Plot plot=city.getPlot(claim);
+				if (plot!=null) { // player entered a plot
+					plot.playerEnterMessage(event.getPlayer());
+				}
 			}
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	void onPlayerJoin(PlayerJoinEvent event) {
-		GPPCities.gppc.ds.playerData.put(event.getPlayer().getUniqueId(), new PlayerData(event.getPlayer()));
-		City city = GPPCities.gppc.ds.getCity(event.getPlayer().getUniqueId());
+		GPPCities.getInstance().getDataStore().playerData.put(event.getPlayer().getUniqueId(), new PlayerData(event.getPlayer()));
+		City city = GPPCities.getInstance().getDataStore().getCity(event.getPlayer().getUniqueId());
 		if (city != null) {
-			PlayerData playerData = GPPCities.gppc.ds.playerData.get(event.getPlayer().getUniqueId());
+			PlayerData playerData = GPPCities.getInstance().getDataStore().playerData.get(event.getPlayer().getUniqueId());
 			
 			// general city permission
-			playerData.perm.setPermission("gppc.c"+city.claim.getID(), true);
+			playerData.getPerm().setPermission("gppc.c"+city.getClaim().getID(), true);
 			
 			// load plot permissions
-			for (Plot plot : city.plots.values()) {
-				if (plot.citizen!=null) {
-					if (event.getPlayer().getUniqueId().equals(plot.citizen.id)) {
-						playerData.perm.setPermission("gpp.c"+plot.id+".b", true);
-						playerData.perm.setPermission("gpp.c"+plot.id+".m", true);
+			for (Plot plot : city.getPlots().values()) {
+				if (plot.getCitizen()!=null) {
+					if (event.getPlayer().getUniqueId().equals(plot.getCitizen().getId())) {
+						playerData.getPerm().setPermission("gpp.c"+plot.getId()+".b", true);
+						playerData.getPerm().setPermission("gpp.c"+plot.getId()+".m", true);
 					}
 				}
 			}
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.MONITOR)
 	void onPlayerQuit(PlayerQuitEvent event){
-		PlayerData playerData = GPPCities.gppc.ds.playerData.remove(event.getPlayer().getUniqueId());
+		PlayerData playerData = GPPCities.getInstance().getDataStore().playerData.remove(event.getPlayer().getUniqueId());
 		if (playerData != null) {
 			playerData.removePermAttachment();
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.MONITOR)
 	void onPlayerKick(PlayerKickEvent event){
-		PlayerData playerData = GPPCities.gppc.ds.playerData.remove(event.getPlayer().getUniqueId());
+		PlayerData playerData = GPPCities.getInstance().getDataStore().playerData.remove(event.getPlayer().getUniqueId());
 		if (playerData != null) {
 			playerData.removePermAttachment();
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.LOWEST)
-	void onPlayerChat(AsyncPlayerChatEvent event) {
+	void onPlayerChat(PlayerChatEvent event) {
 		Player player = event.getPlayer();
 		if (player==null) { // not sure if this check is needed
 			return;
@@ -156,21 +134,21 @@ public class EventListener implements Listener {
 		if (!player.hasPermission("gppc.citychat")) {
 			return;
 		}
-		
+
 		if (event.getMessage().startsWith("/")) { // commands are excluded
 			return;
 		}
 		
-		if (GPPCities.gppc.ds.cityChat.contains(player.getUniqueId())) {
-			City city = GPPCities.gppc.ds.getCity(player.getUniqueId());
+		if (GPPCities.getInstance().getDataStore().cityChat.contains(player.getUniqueId())) {
+			City city = GPPCities.getInstance().getDataStore().getCity(player.getUniqueId());
 			if (city==null) {
-				GPPCities.gppc.ds.cityChat.remove(player.getUniqueId()); // this is not thread-safe
+				GPPCities.getInstance().getDataStore().cityChat.remove(player.getUniqueId()); // this is not thread-safe
 				return;
 			}
-			String message=Messages.CityChatFormat.get(city.name, player.getDisplayName(), event.getMessage());
+			String message=Messages.CityChatFormat.get(city.getName(), player.getDisplayName(), event.getMessage());
 			city.sendMessageToAllCitizens(message);
-			GPPCities.gppc.ds.cityChatSpy(message, city);
-			GPPCities.gppc.log("CC["+city.name+"] <"+player.getName()+"> "+event.getMessage());
+			GPPCities.getInstance().getDataStore().cityChatSpy(message, city);
+			GPPCities.getInstance().log("CC["+city.getName()+"] <"+player.getName()+"> "+event.getMessage());
 			event.setCancelled(true);
 		}
 	}

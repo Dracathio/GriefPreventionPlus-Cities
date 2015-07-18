@@ -46,7 +46,7 @@ class Config {
 		this.ClaimBlocksPerNationCitizen=config.getInt("ClaimableBlocksPerNationCitizen", 100);
 		config.set("ClaimableBlocksPerNationCitizen", this.ClaimBlocksPerNationCitizen);
 		*/
-		this.InactivityDays=config.getInt("InactivityDays", (GriefPreventionPlus.instance.config_claims_expirationDays!=0 ? GriefPreventionPlus.instance.config_claims_expirationDays-1 : 30));
+		this.InactivityDays=config.getInt("InactivityDays", (GriefPreventionPlus.getInstance().config.claims_expirationDays!=0 ? GriefPreventionPlus.getInstance().config.claims_expirationDays-1 : 30));
 		config.set("InactivityDays", this.InactivityDays);
 		
 		this.InactivityCheckMinutes=config.getInt("InactivityCheckMinutes", 60);
@@ -58,7 +58,7 @@ class Config {
 		try {
 			config.save(configFile);
 		} catch (IOException e) {
-			GPPCities.gppc.log(Level.SEVERE, "Couldn't create or save config file.");
+			GPPCities.getInstance().log(Level.SEVERE, "Couldn't create or save config file.");
 			e.printStackTrace();
 		}
 	}

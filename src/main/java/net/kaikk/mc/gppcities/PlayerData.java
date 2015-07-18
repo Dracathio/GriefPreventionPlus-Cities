@@ -24,32 +24,17 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 
-import net.kaikk.mc.gpp.Claim;
-
-class PlayerData {
-	long lastAction;
-	Claim lastClaim;
-	Claim lastPlot;
-	City lastInvitedCity;
-	UUID lastInvitedFrom;
-	long lastInvitedTime;
-	Location lastShovel;
-	Player player;
-	PermissionAttachment perm;
+public class PlayerData {
+	private City lastInvitedCity;
+	private UUID lastInvitedFrom;
+	private long lastInvitedTime;
+	private Location lastShovel;
+	private Player player;
+	private PermissionAttachment perm;
 	
 	PlayerData(Player player) {
-		this.lastAction=System.currentTimeMillis();
-		this.lastClaim=null;
-		this.lastPlot=null;
 		this.player=player;
-		
-		this.perm = player.addAttachment(GPPCities.gppc);
-	}
-	
-	void action(Claim lastClaim, Claim lastPlot) {
-		this.lastClaim=lastClaim;
-		this.lastPlot=lastPlot;
-		this.lastAction=System.currentTimeMillis();
+		this.perm = player.addAttachment(GPPCities.getInstance());
 	}
 	
 	void invited(City city, UUID player) {
@@ -68,5 +53,53 @@ class PlayerData {
 		if (this.perm != null) {
 			this.player.removeAttachment(this.perm);
 		}
+	}
+
+	public City getLastInvitedCity() {
+		return lastInvitedCity;
+	}
+
+	void setLastInvitedCity(City lastInvitedCity) {
+		this.lastInvitedCity = lastInvitedCity;
+	}
+
+	public UUID getLastInvitedFrom() {
+		return lastInvitedFrom;
+	}
+
+	void setLastInvitedFrom(UUID lastInvitedFrom) {
+		this.lastInvitedFrom = lastInvitedFrom;
+	}
+
+	public long getLastInvitedTime() {
+		return lastInvitedTime;
+	}
+
+	void setLastInvitedTime(long lastInvitedTime) {
+		this.lastInvitedTime = lastInvitedTime;
+	}
+
+	public Location getLastShovel() {
+		return lastShovel;
+	}
+
+	void setLastShovel(Location lastShovel) {
+		this.lastShovel = lastShovel;
+	}
+
+	public Player getPlayer() {
+		return player;
+	}
+
+	void setPlayer(Player player) {
+		this.player = player;
+	}
+
+	public PermissionAttachment getPerm() {
+		return perm;
+	}
+
+	void setPerm(PermissionAttachment perm) {
+		this.perm = perm;
 	}
 }
