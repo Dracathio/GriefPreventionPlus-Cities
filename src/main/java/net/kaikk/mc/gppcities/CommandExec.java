@@ -99,6 +99,7 @@ class CommandExec implements CommandExecutor {
 
 					player.sendMessage("- help - show this help");
 					player.sendMessage("- list - show city list");
+					player.sendMessage("- spawn [city name] - teleport to city spawn");
 					player.sendMessage("- join - join a city");
 					player.sendMessage("- info - info about a city");
 					player.sendMessage("- res - info about a player");
@@ -114,7 +115,6 @@ class CommandExec implements CommandExecutor {
 								player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Citizen's commands:"));
 							}
 							
-							player.sendMessage("- spawn");
 							player.sendMessage("- leave - Leave the city");
 							
 							if (citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Spawn.perm)) {
