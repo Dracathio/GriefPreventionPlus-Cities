@@ -619,7 +619,7 @@ class CommandExec implements CommandExecutor {
 				}
 				
 				city.addBan(playerId);
-				player.sendMessage(Messages.PlayerBannedConfirm.get(player.getName(), city.getName()));
+				player.sendMessage(Messages.PlayerBannedConfirm.get(args[1], city.getName()));
 				GPPCities.getInstance().log(player.getName()+" banned "+args[1]+" from "+city.getName());
 				return true;
 			} else if (args[0].equalsIgnoreCase("unban")) {
