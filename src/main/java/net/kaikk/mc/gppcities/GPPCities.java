@@ -40,6 +40,8 @@ public class GPPCities extends JavaPlugin{
 		instance=this;
 		
 		this.config = new Config();
+		
+		Messages.load();
 		// Inizialize database
 		try {
 			// Get data
@@ -80,9 +82,7 @@ public class GPPCities extends JavaPlugin{
 		this.getServer().getPluginCommand("deleteclaim").setExecutor(new CommandExec());
 		this.getServer().getPluginCommand("deleteallclaims").setExecutor(new CommandExec());
 		this.getServer().getPluginCommand("transferclaim").setExecutor(new CommandExec());
-		
-		Messages.load();
-		
+
 		// Schedule InactiveCitiesCheck
 		if (this.config.InactivityDays>0 && this.config.InactivityCheckMinutes>0) {
 			new InactivityCheckTask(instance).runTaskTimer(instance, 500, 4);
