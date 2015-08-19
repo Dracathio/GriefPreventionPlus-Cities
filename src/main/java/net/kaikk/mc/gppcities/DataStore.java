@@ -224,16 +224,18 @@ class DataStore {
 			
 			statement.close();
 			
+			ArrayList<City> citiesToRemove = new ArrayList<City>();
 			for (Entry<Integer,City> entry : this.citiesMap.entrySet()) {
 				if (!entry.getValue().isValid()) {
-					instance.log(Level.WARNING, "Removed city "+entry.getValue().getName()+": city is invalid");
-					try {
-						this.deleteCity(entry.getValue());
-					} catch(Exception e) {
-						this.citiesMap.remove(entry.getKey());
-					}
+					citiesToRemove.add(entry.getValue());
 				}
 			}
+			
+			for (City city : citiesToRemove) {
+				instance.log(Level.WARNING, "Removed city \""+city.getName()+"\": city is invalid");
+				this.deleteCity(city);
+			}
+			
 		} catch(Exception e) {
 			log(Level.SEVERE, "Unable to read the database. Details:");
 			throw e;
