@@ -763,7 +763,8 @@ class CommandExec implements CommandExecutor {
 					return true;
 				} else if (args[0].equalsIgnoreCase("setspawn")) {
 					Citizen citizen = city.getCitizen(player.getUniqueId());
-					if (!citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Spawn.perm)) {
+					
+					if (citizen==null || !citizen.checkPerm(CitizenPermission.Mayor.perm|CitizenPermission.Assistant.perm|CitizenPermission.Spawn.perm)) {
 						player.sendMessage(Messages.NoPermission.get());
 						return false;
 					}
