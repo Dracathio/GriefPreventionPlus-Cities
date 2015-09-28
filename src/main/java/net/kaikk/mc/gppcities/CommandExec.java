@@ -1103,7 +1103,7 @@ class CommandExec implements CommandExecutor {
 				return true;
 			}
 			
-			if (args[0].equalsIgnoreCase("join")) {
+			if (args[1].equalsIgnoreCase("join")) {
 				if (!player.hasPermission("gppc.cityadmin.join")) {
 					player.sendMessage(Messages.NoPermission.get());
 					return false;
