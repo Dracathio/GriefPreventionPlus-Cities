@@ -131,6 +131,7 @@ class DataStore {
 
 		try {
 			Statement statement = database.createStatement();
+			Statement statement2 = database.createStatement();
 			// delete all orphan cities and plots from the database
 			// load cities and plots data from the database
 			
@@ -145,7 +146,12 @@ class DataStore {
 				Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(1));
 				
 				if (claim==null) {
-					instance.log(Level.WARNING, "Skipping orphan city ID("+results.getInt(1)+")");
+					int id = results.getInt(1);
+					instance.log(Level.WARNING, "Removing orphan city ID("+id+") and all references.");
+					statement2.executeUpdate("DELETE FROM gppc_citizens WHERE cid = "+id);
+					statement2.executeUpdate("DELETE FROM gppc_plots WHERE cid = "+id);
+					statement2.executeUpdate("DELETE FROM gppc_bans WHERE cid = "+id);
+					statement2.executeUpdate("DELETE FROM gppc_cities WHERE id = "+id);
 				} else {
 					this.citiesMap.put(results.getInt(1), new City(claim, results.getString(2), new Date(results.getTimestamp(3).getTime()), results.getString(4), results.getString(5), results.getBoolean(6), new Location(claim.getWorld(), results.getInt(7), results.getInt(8), results.getInt(9)), results.getInt(10)));
 					count++;
@@ -162,7 +168,9 @@ class DataStore {
 			while (results.next()) {
 				City city = this.citiesMap.get(results.getInt(2));
 				if (city==null) {
-					instance.log(Level.WARNING, "Skipping orphan citizen UUID["+toUUID(results.getBytes(1)).toString()+"]");
+					UUID uuid = toUUID(results.getBytes(1));
+					instance.log(Level.WARNING, "Removing orphan citizen UUID["+uuid.toString()+"]");
+					statement2.executeUpdate("DELETE FROM gppc_citizens WHERE id = "+UUIDtoHexString(uuid));
 				} else {
 					city.getCitizens().put(toUUID(results.getBytes(1)), city.new Citizen(toUUID(results.getBytes(1)), results.getByte(3), new Date(results.getTimestamp(4).getTime())));
 					count++;
@@ -174,39 +182,33 @@ class DataStore {
 			// Load plots
 			this.dbCheck();
 			instance.log("Loading plots...");
-
+			
 			Citizen citizen;
 			results = statement.executeQuery("SELECT id, cid, citizen, motd, assignedOn, isTakeable FROM gppc_plots;");
 			while (results.next()) {
 				City city = this.citiesMap.get(results.getInt(2));
+			
+				Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(2));
 				
-				if (city==null) {
-					instance.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing city id("+results.getInt(2)+"))");
-				} else {
-					Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(2));
-					if (claim==null) {
-						instance.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing city claim id("+results.getInt(2)+"))");
-					} else {
-						boolean skip=true;
-						for (Claim subclaim : claim.getChildren()) {
-							if (subclaim.getID()==results.getInt(1)) {
-								if (results.getBytes(3)==null) {
-									citizen=null;
-								} else {
-									citizen=city.getCitizen(GriefPreventionPlus.getInstance().getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
-								}
-								
-								city.getPlots().put(results.getInt(1), city.new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
-								
-								count++;
-								skip=false;
-								break;
-							}
+				boolean removeFlag=true;
+				for (Claim subclaim : claim.getChildren()) {
+					if (subclaim.getID()==results.getInt(1)) {
+						if (results.getBytes(3)==null) {
+							citizen=null;
+						} else {
+							citizen=city.getCitizen(GriefPreventionPlus.getInstance().getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
 						}
-						if (skip) {
-							instance.log(Level.WARNING, "Skipping orphan plot ID("+results.getInt(1)+") (missing plot subclaim)");
-						}
+						
+						city.getPlots().put(results.getInt(1), city.new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
+						
+						count++;
+						removeFlag=false;
+						break;
 					}
+				}
+				if (removeFlag) {
+					instance.log(Level.WARNING, "Removing orphan plot ID("+results.getInt(1)+") city("+results.getInt(2)+") '"+city.getName()+"' (missing plot subclaim)");
+					statement2.executeUpdate("DELETE FROM gppc_plots WHERE id = "+results.getInt(1));
 				}
 			}
 			instance.log("Loaded "+count+" plots.");
@@ -215,14 +217,11 @@ class DataStore {
 			this.dbCheck();
 			results = statement.executeQuery("SELECT * FROM gppc_bans;");
 			while (results.next()) {
-				City city = this.citiesMap.get(results.getLong(2));
-				
-				if (city!=null) {
-					city.getBannedPlayers().add(toUUID(results.getBytes(1)));
-				}
+				this.citiesMap.get(results.getLong(2)).getBannedPlayers().add(toUUID(results.getBytes(1)));
 			}
 			
 			statement.close();
+			statement2.close();
 			
 			ArrayList<City> citiesToRemove = new ArrayList<City>();
 			for (Entry<Integer,City> entry : this.citiesMap.entrySet()) {
@@ -232,7 +231,7 @@ class DataStore {
 			}
 			
 			for (City city : citiesToRemove) {
-				instance.log(Level.WARNING, "Removed city \""+city.getName()+"\": city is invalid");
+				instance.log(Level.WARNING, "Removed invalid city \""+city.getName()+"\"");
 				this.deleteCity(city);
 			}
 			
