@@ -1,6 +1,6 @@
 name: GPPCities
 main: net.kaikk.mc.gppcities.GPPCities
-version: 1.5.5
+version: 1.5.6
 author: KaiNoMood
 depend: [GriefPreventionPlus]
 
