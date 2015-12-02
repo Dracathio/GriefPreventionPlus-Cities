@@ -1,7 +1,7 @@
-name: ${name}
-main: ${package}.${name}
-version: ${version}
-author: KaiNoMood
+name: ${project.artifactId}
+main: ${package}.${project.artifactId}
+version: ${project.version}
+author: ${developer}
 depend: [GriefPreventionPlus]
 
 commands:
