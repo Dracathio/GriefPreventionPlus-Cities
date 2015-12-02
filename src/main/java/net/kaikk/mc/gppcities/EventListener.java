@@ -18,12 +18,7 @@
 
 package net.kaikk.mc.gppcities;
 
-import net.kaikk.mc.gpp.Claim;
-import net.kaikk.mc.gpp.events.ClaimEnterEvent;
-import net.kaikk.mc.gpp.events.ClaimExitEvent;
-import net.kaikk.mc.gpp.events.ClaimFromToEvent;
-import net.kaikk.mc.gppcities.City.Plot;
-
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -32,6 +27,15 @@ import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import net.kaikk.mc.gpp.Claim;
+import net.kaikk.mc.gpp.events.ClaimDeleteEvent;
+import net.kaikk.mc.gpp.events.ClaimDeleteEvent.Reason;
+import net.kaikk.mc.gpp.events.ClaimEnterEvent;
+import net.kaikk.mc.gpp.events.ClaimExitEvent;
+import net.kaikk.mc.gpp.events.ClaimFromToEvent;
+import net.kaikk.mc.gpp.events.ClaimOwnerTransfer;
+import net.kaikk.mc.gppcities.City.Plot;
 
 @SuppressWarnings("deprecation")
 class EventListener implements Listener {
@@ -146,6 +150,12 @@ class EventListener implements Listener {
 				return;
 			}
 			String message=Messages.CityChatFormat.get(city.getName(), player.getDisplayName(), event.getMessage());
+			CityChatEvent cityChatEvent = new CityChatEvent(city, player, message);
+			Bukkit.getPluginManager().callEvent(cityChatEvent);
+			if (cityChatEvent.isCancelled()) {
+				return;
+			}
+			
 			city.sendMessageToAllCitizens(message);
 			GPPCities.getInstance().getDataStore().cityChatSpy(message, city);
 			GPPCities.getInstance().log("CC["+city.getName()+"] <"+player.getName()+"> "+event.getMessage());
@@ -153,4 +163,33 @@ class EventListener implements Listener {
 		}
 	}
 	
+	@EventHandler(ignoreCancelled=true)
+	void onClaimDelete(ClaimDeleteEvent event) {
+		City city = GPPCities.getInstance().getDataStore().getCity(event.getClaim());
+		if (city!=null) {
+			if (event.getDeleteReason()==Reason.EXPIRED) {
+				// the city claim expired!
+				if (city.handleInactiveCitizens()) {
+					this.instance.log("Removing city: "+city.getName());
+					this.instance.getDataStore().deleteCity(city);
+				} else {
+					event.setCancelled(true);
+				}
+			} else {
+				if (event.getPlayer()!=null) {
+					event.getPlayer().sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.getClaim().getID()), city.getName()));
+				}
+				event.setCancelled(true);
+			}
+		}
+	}
+	
+	@EventHandler(ignoreCancelled=true) 
+	void onClaimOwnerTransfer(ClaimOwnerTransfer event) {
+		City city = GPPCities.getInstance().getDataStore().getCity(event.getClaim());
+		if (city!=null) {
+			event.getPlayer().sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.getClaim().getID()), city.getName()));
+			event.setCancelled(true);
+		}
+	}
 }

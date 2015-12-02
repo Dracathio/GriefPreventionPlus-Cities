@@ -21,14 +21,12 @@ package net.kaikk.mc.gppcities;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
-import net.kaikk.mc.gppcities.City.Citizen;
-
 import org.bukkit.scheduler.BukkitRunnable;
 
 class InactivityCheckTask extends BukkitRunnable {
 	private final GPPCities instance;
 	private Iterator<City> iterator;
-	private int removedCitizens, removedCities, removedMayors;
+	private int removedCities;
 
 	InactivityCheckTask(GPPCities instance) {
 		this.instance = instance;
@@ -43,54 +41,16 @@ class InactivityCheckTask extends BukkitRunnable {
 		try {
 			if (this.iterator.hasNext()) {
 				City city=this.iterator.next();
-				if (city.getCitizens().size()==0) {// empty city...
-					this.instance.log("Removing empty city: "+city.getName());
+				
+				if (city.handleInactiveCitizens()) {
+					this.instance.log("Removing city: "+city.getName());
 					this.instance.getDataStore().deleteCity(city);
 					this.removedCities++;
 					return;
 				}
-				
-				Citizen expiredMayor=null;
-				
-				for (Citizen citizen : city.getCitizens().values()) {
-					if(citizen.getLastPlayedDays()>this.instance.config.InactivityDays) {
-						// citizen expired
-						if (citizen.checkPerm(CitizenPermission.Mayor)) {
-							// this citizen is the mayor, let's ignore him atm
-							expiredMayor=citizen;
-						} else {
-							instance.log("Removing citizen "+citizen.getName()+" from "+city.getName());
-							city.removeCitizen(citizen.getId());
-							this.removedCitizens++;
-						}
-					}
-				}
-				
-				if (expiredMayor!=null) {
-					// the mayor is gone... need to replace him with someone else...
-					if (city.getCitizens().size()==1) {
-						// the mayor is alone...
-						this.instance.log("Removing expired city: "+city.getName());
-						this.instance.getDataStore().deleteCity(city);
-						this.removedCities++;
-					} else {
-						// change the city owner
-						Citizen newMayor=null;
-						newMayor=city.getOldestAssistant();
-						if (newMayor==null) {
-							newMayor=city.getOldestCitizen();
-						}
-						this.instance.log("Removing old mayor "+expiredMayor.getName()+" from "+city.getName()+". New mayor is "+newMayor.getName());
-						city.changeOwner(newMayor.getId());
-						city.removeCitizen(expiredMayor.getId());
-						this.removedMayors++;
-					}
-				}
-				
 			} else {
 				// summary
-				this.instance.log("Inactivity Check Task Done! "
-						+ ((this.removedCitizens!=0||this.removedMayors!=0||this.removedCities!=0) ? "Removed "+this.removedCitizens+" citizens, "+this.removedMayors+" mayors, "+this.removedCities+" cities." : ""));
+				this.instance.log("Inactivity Check Task Done! " + (this.removedCities!=0 ? "Removed "+this.removedCities+" cities." : ""));
 				
 				// reschedule
 				this.cancel();

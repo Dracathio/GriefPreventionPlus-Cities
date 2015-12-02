@@ -30,8 +30,11 @@ import net.kaikk.mc.gpp.GriefPreventionPlus;
 import net.kaikk.mc.gppcities.City.Citizen;
 import net.kaikk.mc.gppcities.City.Plot;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -49,41 +52,6 @@ class CommandExec implements CommandExecutor {
 		}
 		final Player player = (Player) sender;
 		final PlayerData playerData=GPPCities.getInstance().getDataStore().playerData.get(player.getUniqueId()); 
-
-		// GP's commands override!
-		if (cmd.getName().equalsIgnoreCase("abandonallclaims")) {
-			// need to check if this player has cities
-			City city = GPPCities.getInstance().getDataStore().getCity(player.getUniqueId());
-			if (city==null || !city.getClaim().getOwnerID().equals(player.getUniqueId())) {
-				return GPPCities.getInstance().getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // Pass the command to GP
-			}
-
-			player.sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.getClaim().getID()), city.getName()));
-			return false;
-		} else if (cmd.getName().equalsIgnoreCase("deleteallclaims")) {
-			if (args.length==0) {
-				return GPPCities.getInstance().getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // Pass the command to GP
-			}
-			City city = GPPCities.getInstance().getDataStore().getCity(args[0]);
-			if (city==null || !city.getClaim().getOwnerID().equals(player.getUniqueId())) {
-				return GPPCities.getInstance().getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // Pass the command to GP
-			}
-
-			player.sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.getClaim().getID()), city.getName()));
-			return false;
-		} else if (cmd.getName().equalsIgnoreCase("abandonclaim") || cmd.getName().equalsIgnoreCase("abandontoplevelclaim") || cmd.getName().equalsIgnoreCase("deleteclaim") || cmd.getName().equalsIgnoreCase("transferclaim")) {
-			Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaimAt(player.getLocation(), false);
-			if (claim!=null) {
-				City city = GPPCities.getInstance().getDataStore().citiesMap.get((claim.getParent()!=null?claim.getParent().getID():claim.getID()));
-				if (city!=null) {
-					if (!(cmd.getName().equalsIgnoreCase("abandonclaim") || cmd.getName().equalsIgnoreCase("deleteclaim")) || claim.getParent()==null || city.getPlot(claim)!=null) {
-						player.sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.getClaim().getID()), city.getName()));
-						return false;
-					}
-				}
-			}
-			return GPPCities.getInstance().getServer().getPluginCommand("claimslist").getExecutor().onCommand(sender, cmd, label, args); // No claim or city here, pass the command to GP
-		}
 
 		// GPPCities commands
 		if (!player.hasPermission("gppc.city")) {
@@ -200,11 +168,12 @@ class CommandExec implements CommandExecutor {
 						return true;
 					}
 					
-					if (city.getSpawn()==null || !city.getClaim().contains(city.getSpawn(), false, false)) {
+					if (city.getSpawn()==null || !city.getClaim().contains(city.getSpawn(), false, false) || city.getSpawn().getBlock().getType()!=Material.AIR || city.getSpawn().getBlock().getRelative(BlockFace.UP).getType()!=Material.AIR) {
 						city.setSpawn(null);
 						player.sendMessage(Messages.CitySpawnMissing2.get(city.getName()));
 						return true;
 					}
+					
 					if (player.hasPermission("gppc.nodelay")) {
 						player.teleport(city.getSpawn());
 						player.sendMessage(Messages.CitySpawnTeleported.get(city.getName()));
@@ -1042,6 +1011,13 @@ class CommandExec implements CommandExecutor {
 			
 			String message=DataStore.mergeStringArrayFromIndex(args, 0);
 			String cMessage=Messages.CityChatFormat.get(city.getName(), player.getDisplayName(), message);
+			
+			CityChatEvent event = new CityChatEvent(city, player, cMessage);
+			Bukkit.getPluginManager().callEvent(event);
+			if (event.isCancelled()) {
+				return true;
+			}
+			
 			city.sendMessageToAllCitizens(cMessage);
 			GPPCities.getInstance().getDataStore().cityChatSpy(cMessage, city);
 			GPPCities.getInstance().log("CC["+city.getName()+"] <"+player.getName()+"> "+message);

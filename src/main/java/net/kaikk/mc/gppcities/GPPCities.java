@@ -74,14 +74,6 @@ public class GPPCities extends JavaPlugin{
 		PluginManager pm = getServer().getPluginManager();
 		
 		pm.registerEvents(this.eventListener, this);
-		
-		// redirect some GP command to GPC's Executor
-		this.getServer().getPluginCommand("abandonclaim").setExecutor(new CommandExec());
-		this.getServer().getPluginCommand("abandontoplevelclaim").setExecutor(new CommandExec());
-		this.getServer().getPluginCommand("abandonallclaims").setExecutor(new CommandExec());
-		this.getServer().getPluginCommand("deleteclaim").setExecutor(new CommandExec());
-		this.getServer().getPluginCommand("deleteallclaims").setExecutor(new CommandExec());
-		this.getServer().getPluginCommand("transferclaim").setExecutor(new CommandExec());
 
 		// Schedule InactiveCitiesCheck
 		if (this.config.InactivityDays>0 && this.config.InactivityCheckMinutes>0) {

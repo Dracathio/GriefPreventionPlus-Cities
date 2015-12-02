@@ -689,6 +689,49 @@ public class City {
 	void setClaim(Claim claim) {
 		this.claim = claim;
 	}
+	
+	/** Returns true if this city should be removed because this city is empty. */
+	boolean handleInactiveCitizens() {
+		if (this.getCitizens().size()==0) {
+			return true;
+		}
+		
+		Citizen expiredMayor=null;
+		
+		// Check all citizens for inactivity
+		for (Citizen citizen : this.getCitizens().values()) {
+			if(citizen.getLastPlayedDays()>GPPCities.getInstance().config.InactivityDays) {
+				// citizen expired
+				if (citizen.checkPerm(CitizenPermission.Mayor)) {
+					// this citizen is the mayor, let's ignore him atm
+					expiredMayor=citizen;
+				} else {
+					GPPCities.getInstance().log("Removing citizen "+citizen.getName()+" from "+this.getName());
+					this.removeCitizen(citizen.getId());
+				}
+			}
+		}
+		
+		if (expiredMayor!=null) {
+			// the mayor is inactive... need to replace him with someone else...
+			if (this.getCitizens().size()==1) {
+				// the mayor is alone... the city must be removed
+				return true;
+			} else {
+				// change the city owner
+				Citizen newMayor=null;
+				newMayor=this.getOldestAssistant();
+				if (newMayor==null) {
+					newMayor=this.getOldestCitizen();
+				}
+				GPPCities.getInstance().log("Removing old mayor "+expiredMayor.getName()+" from "+this.getName()+". New mayor is "+newMayor.getName());
+				this.changeOwner(newMayor.getId());
+				this.removeCitizen(expiredMayor.getId());
+			}
+		}
+		
+		return false;
+	}
 
 	public class Plot {
 		private int id;
