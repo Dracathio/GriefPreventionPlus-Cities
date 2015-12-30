@@ -175,6 +175,14 @@ class EventListener implements Listener {
 				} else {
 					event.setCancelled(true);
 				}
+			} else if (city.getClaim() != event.getClaim()) {
+				// this is a subdivision inside a city... check if it's a plot
+				if (city.getPlot(event.getClaim())!=null) {
+					if (event.getPlayer()!=null) {
+						event.getPlayer().sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.getClaim().getID()), city.getName()));
+					}
+					event.setCancelled(true);
+				}
 			} else {
 				if (event.getPlayer()!=null) {
 					event.getPlayer().sendMessage(Messages.CantRunCommandYouHaveCity.get(String.valueOf(city.getClaim().getID()), city.getName()));
