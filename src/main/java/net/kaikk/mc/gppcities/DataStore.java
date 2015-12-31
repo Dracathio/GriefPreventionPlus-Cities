@@ -31,14 +31,14 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+
 import net.kaikk.mc.gpp.Claim;
 import net.kaikk.mc.gpp.ClaimPermission;
 import net.kaikk.mc.gpp.GriefPreventionPlus;
 import net.kaikk.mc.gppcities.City.Citizen;
-
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 class DataStore {
 	GPPCities instance;
@@ -209,7 +209,7 @@ class DataStore {
 					}
 				}
 				if (removeFlag) {
-					instance.log(Level.WARNING, "Removing orphan plot ID("+results.getInt(1)+") city("+results.getInt(2)+") '"+city.getName()+"' (missing plot subclaim)");
+					instance.log(Level.WARNING, "Removing orphan plot ID("+results.getInt(1)+") city("+results.getInt(2)+") '"+city.getName()+"'");
 					statement2.executeUpdate("DELETE FROM gppc_plots WHERE id = "+results.getInt(1));
 				}
 			}
@@ -219,7 +219,13 @@ class DataStore {
 			this.dbCheck();
 			results = statement.executeQuery("SELECT * FROM gppc_bans;");
 			while (results.next()) {
-				this.citiesMap.get(results.getLong(2)).getBannedPlayers().add(toUUID(results.getBytes(1)));
+				City city = this.citiesMap.get(results.getLong(2));
+				if (city!=null) {
+					city.getBannedPlayers().add(toUUID(results.getBytes(1)));
+				} else {
+					instance.log(Level.WARNING, "Removing orphan ban ID("+results.getInt(1)+") city("+results.getInt(2)+") '"+city.getName()+"'");
+					statement2.executeUpdate("DELETE FROM gppc_bans WHERE id = "+UUIDtoHexString(toUUID(results.getBytes(1))));
+				}
 			}
 			
 			statement.close();
