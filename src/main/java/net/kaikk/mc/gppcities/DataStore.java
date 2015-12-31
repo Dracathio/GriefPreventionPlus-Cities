@@ -191,19 +191,21 @@ class DataStore {
 				Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(2));
 				
 				boolean removeFlag=true;
-				for (Claim subclaim : claim.getChildren()) {
-					if (subclaim.getID()==results.getInt(1)) {
-						if (results.getBytes(3)==null) {
-							citizen=null;
-						} else {
-							citizen=city.getCitizen(GriefPreventionPlus.getInstance().getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
+				if (claim!=null) {
+					for (Claim subclaim : claim.getChildren()) {
+						if (subclaim.getID()==results.getInt(1)) {
+							if (results.getBytes(3)==null) {
+								citizen=null;
+							} else {
+								citizen=city.getCitizen(GriefPreventionPlus.getInstance().getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
+							}
+							
+							city.getPlots().put(results.getInt(1), city.new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
+							
+							count++;
+							removeFlag=false;
+							break;
 						}
-						
-						city.getPlots().put(results.getInt(1), city.new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
-						
-						count++;
-						removeFlag=false;
-						break;
 					}
 				}
 				if (removeFlag) {
