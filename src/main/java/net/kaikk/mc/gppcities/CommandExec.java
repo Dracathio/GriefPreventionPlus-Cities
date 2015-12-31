@@ -169,7 +169,6 @@ class CommandExec implements CommandExecutor {
 					}
 					
 					if (city.getSpawn()==null || !city.getClaim().contains(city.getSpawn(), false, false) || city.getSpawn().getBlock().getType()!=Material.AIR || city.getSpawn().getBlock().getRelative(BlockFace.UP).getType()!=Material.AIR) {
-						city.setSpawn(null);
 						player.sendMessage(Messages.CitySpawnMissing2.get(city.getName()));
 						return true;
 					}
