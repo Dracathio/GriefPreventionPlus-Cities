@@ -191,7 +191,6 @@ class DataStore {
 				if (city!=null) {
 					Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(2));
 					
-					
 					if (claim!=null) {
 						for (Claim subclaim : claim.getChildren()) {
 							if (subclaim.getID()==results.getInt(1)) {
@@ -225,8 +224,9 @@ class DataStore {
 				if (city!=null) {
 					city.getBannedPlayers().add(toUUID(results.getBytes(1)));
 				} else {
-					instance.log(Level.WARNING, "Removing orphan ban ID("+results.getInt(1)+") city("+results.getInt(2)+") '"+city.getName()+"'");
-					statement2.executeUpdate("DELETE FROM gppc_bans WHERE id = "+UUIDtoHexString(toUUID(results.getBytes(1))));
+					String uuidString = UUIDtoHexString(toUUID(results.getBytes(1)));
+					instance.log(Level.WARNING, "Removing orphan ban ID("+uuidString+") city("+results.getInt(2)+") '"+city.getName()+"'");
+					statement2.executeUpdate("DELETE FROM gppc_bans WHERE id = "+uuidString);
 				}
 			}
 			
