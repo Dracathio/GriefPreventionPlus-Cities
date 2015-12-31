@@ -187,29 +187,31 @@ class DataStore {
 			results = statement.executeQuery("SELECT id, cid, citizen, motd, assignedOn, isTakeable FROM gppc_plots;");
 			while (results.next()) {
 				City city = this.citiesMap.get(results.getInt(2));
-			
-				Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(2));
-				
 				boolean removeFlag=true;
-				if (claim!=null) {
-					for (Claim subclaim : claim.getChildren()) {
-						if (subclaim.getID()==results.getInt(1)) {
-							if (results.getBytes(3)==null) {
-								citizen=null;
-							} else {
-								citizen=city.getCitizen(GriefPreventionPlus.getInstance().getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
+				if (city!=null) {
+					Claim claim = GriefPreventionPlus.getInstance().getDataStore().getClaim(results.getInt(2));
+					
+					
+					if (claim!=null) {
+						for (Claim subclaim : claim.getChildren()) {
+							if (subclaim.getID()==results.getInt(1)) {
+								if (results.getBytes(3)==null) {
+									citizen=null;
+								} else {
+									citizen=city.getCitizen(GriefPreventionPlus.getInstance().getServer().getOfflinePlayer(toUUID(results.getBytes(3))).getUniqueId());
+								}
+								
+								city.getPlots().put(results.getInt(1), city.new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
+								
+								count++;
+								removeFlag=false;
+								break;
 							}
-							
-							city.getPlots().put(results.getInt(1), city.new Plot(results.getInt(1), subclaim, citizen, results.getString(4), new Date(results.getTimestamp(5).getTime()), results.getBoolean(6)));
-							
-							count++;
-							removeFlag=false;
-							break;
 						}
 					}
 				}
 				if (removeFlag) {
-					instance.log(Level.WARNING, "Removing orphan plot ID("+results.getInt(1)+") city("+results.getInt(2)+") '"+city.getName()+"'");
+					instance.log(Level.WARNING, "Removing orphan plot ID("+results.getInt(1)+") city("+results.getInt(2)+")");
 					statement2.executeUpdate("DELETE FROM gppc_plots WHERE id = "+results.getInt(1));
 				}
 			}
