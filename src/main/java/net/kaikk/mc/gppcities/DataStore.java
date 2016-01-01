@@ -225,7 +225,7 @@ class DataStore {
 					city.getBannedPlayers().add(toUUID(results.getBytes(1)));
 				} else {
 					String uuidString = UUIDtoHexString(toUUID(results.getBytes(1)));
-					instance.log(Level.WARNING, "Removing orphan ban ID("+uuidString+") city("+results.getInt(2)+") '"+city.getName()+"'");
+					instance.log(Level.WARNING, "Removing orphan ban ID("+uuidString+") city("+results.getInt(2)+")");
 					statement2.executeUpdate("DELETE FROM gppc_bans WHERE id = "+uuidString);
 				}
 			}
