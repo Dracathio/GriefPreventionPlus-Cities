@@ -445,16 +445,17 @@ class CommandExec implements CommandExecutor {
 					return false;
 				}
 				
-				if (citizen==city.getMayor()) {
-					player.sendMessage(Messages.MayorCannotLeave.get());
-					return false;
-				}
-				
 				citizen = city.getCitizen(args[1]);
 				if (citizen==null) {
 					player.sendMessage(Messages.WrongCitizenName.get());
 					return false;
 				}
+				
+				if (citizen==city.getMayor()) {
+					player.sendMessage(Messages.MayorCannotLeave.get());
+					return false;
+				}
+				
 				if (citizen.getPlayer()!=null) {
 					citizen.getPlayer().sendMessage(Messages.YouveBeenExpelled.get(city.getName()));
 				}
