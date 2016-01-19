@@ -31,7 +31,9 @@ import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import net.kaikk.mc.gpp.Claim;
@@ -283,6 +285,17 @@ public class City {
 			return false;
 		}
 		return true;
+	}
+	
+	public boolean isSpawnValid() {
+		return this.getClaim().contains(this.getSpawn(), false, false);
+	}
+	
+	public void teleport(Player player) {
+		this.getSpawn().getBlock().setType(Material.AIR);
+		this.getSpawn().getBlock().getRelative(BlockFace.UP).setType(Material.AIR);
+		player.teleport(this.getSpawn());
+		player.sendMessage(Messages.CitySpawnTeleported.get(this.getName()));
 	}
 	
 	/** set the motd */

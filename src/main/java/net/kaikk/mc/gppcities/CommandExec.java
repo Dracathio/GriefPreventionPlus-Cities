@@ -25,21 +25,19 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import net.kaikk.mc.gpp.Claim;
-import net.kaikk.mc.gpp.GriefPreventionPlus;
-import net.kaikk.mc.gppcities.City.Citizen;
-import net.kaikk.mc.gppcities.City.Plot;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import net.kaikk.mc.gpp.Claim;
+import net.kaikk.mc.gpp.GriefPreventionPlus;
+import net.kaikk.mc.gppcities.City.Citizen;
+import net.kaikk.mc.gppcities.City.Plot;
 
 class CommandExec implements CommandExecutor {
 	public Map<Integer, City> citiesMap = GPPCities.getInstance().getDataStore().citiesMap; // GPPCities database
@@ -168,14 +166,13 @@ class CommandExec implements CommandExecutor {
 						return true;
 					}
 					
-					if (!city.getClaim().contains(city.getSpawn(), false, false) || city.getSpawn().getBlock().getType()!=Material.AIR || city.getSpawn().getBlock().getRelative(BlockFace.UP).getType()!=Material.AIR) {
+					if (city.isSpawnValid()) {
 						player.sendMessage(Messages.CitySpawnMissing2.get(city.getName()));
 						return true;
 					}
 					
 					if (player.hasPermission("gppc.nodelay")) {
-						player.teleport(city.getSpawn());
-						player.sendMessage(Messages.CitySpawnTeleported.get(city.getName()));
+						city.teleport(player);
 					} else {
 						player.sendMessage(Messages.CitySpawnTeleportDelay.get(city.getName()));
 						final int x = player.getLocation().getBlockX(), z = player.getLocation().getBlockZ();
@@ -190,8 +187,7 @@ class CommandExec implements CommandExecutor {
 								}
 								
 								if (c>=10) {
-									player.teleport(city.getSpawn());
-									player.sendMessage(Messages.CitySpawnTeleported.get(city.getName()));
+									city.teleport(player);
 									this.cancel();
 								}
 								c++;
@@ -219,7 +215,7 @@ class CommandExec implements CommandExecutor {
 					return true;
 				}
 
-				player.teleport(city.getSpawn());
+				city.teleport(player);
 				return true;
 			} else if (args[0].equalsIgnoreCase("invite")) {
 				if (args.length==1) {
