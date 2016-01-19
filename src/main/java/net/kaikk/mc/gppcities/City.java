@@ -392,7 +392,10 @@ public class City {
 			
 			Statement statement = GPPCities.getInstance().getDataStore().getDatabase().createStatement();
 			statement.executeUpdate("DELETE FROM gppc_citizens WHERE id = "+DataStore.UUIDtoHexString(id)+";");
-			GPPCities.getInstance().getDataStore().playerData.get(id).getPerm().unsetPermission("gppc.c"+this.claim.getID());
+			PlayerData playerData = GPPCities.getInstance().getDataStore().playerData.get(id);
+			if (playerData!=null) {
+				playerData.getPerm().unsetPermission("gppc.c"+this.claim.getID());
+			}
 			this.citizens.remove(id);
 			
 			// remove bonus claimable blocks for the mayor
