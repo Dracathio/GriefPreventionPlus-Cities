@@ -166,7 +166,7 @@ class CommandExec implements CommandExecutor {
 						return true;
 					}
 					
-					if (city.isSpawnValid()) {
+					if (!city.isSpawnValid()) {
 						player.sendMessage(Messages.CitySpawnMissing2.get(city.getName()));
 						return true;
 					}
@@ -209,7 +209,7 @@ class CommandExec implements CommandExecutor {
 					return true;
 				}
 				
-				if (city.getSpawn()==null || !city.getClaim().contains(city.getSpawn(), false, false)) {
+				if (!city.isSpawnValid()) {
 					city.setSpawn(null);
 					player.sendMessage(Messages.CitySpawnMissing2.get(city.getName()));
 					return true;
