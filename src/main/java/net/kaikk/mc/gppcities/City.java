@@ -78,7 +78,7 @@ public class City {
 	
 	// City methods
 	/** set the motd */
-	public synchronized void setMotd(String motd, boolean resmotd) {
+	public void setMotd(String motd, boolean resmotd) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			
@@ -299,7 +299,7 @@ public class City {
 	}
 	
 	/** set the motd */
-	synchronized void setAutojoin(boolean autojoin) {
+	void setAutojoin(boolean autojoin) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			
@@ -317,11 +317,11 @@ public class City {
 	
 	
 	// Citizens methods
-	synchronized void newCitizen(UUID id) {
+	void newCitizen(UUID id) {
 		this.newCitizen(id, (byte)0);
 	}
 	
-	synchronized void newCitizen(UUID playerId, int rank) {
+	void newCitizen(UUID playerId, int rank) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			
@@ -477,7 +477,7 @@ public class City {
 	
 	/** Create a plot (without any assignment) 
 	 * @return the created plot, null otherwise */
-	public synchronized Plot newPlot(Claim claim) {
+	public Plot newPlot(Claim claim) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			Statement statement = GPPCities.getInstance().getDataStore().getDatabase().createStatement();
@@ -498,7 +498,7 @@ public class City {
 	/** Assign a plot (creates a new plot if it doesn't exist)
 	 * @return boolean true if the plot was assigned
 	 * */
-	public synchronized boolean assignPlot(Claim claim, Citizen citizen) {
+	public boolean assignPlot(Claim claim, Citizen citizen) {
 		Plot plot = this.getPlot(claim);
 		if (plot == null) {
 			plot = this.newPlot(claim);
@@ -524,7 +524,7 @@ public class City {
 		}
 	}
 	
-	public synchronized void deletePlot(Plot plot) {
+	public void deletePlot(Plot plot) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			Statement statement = GPPCities.getInstance().getDataStore().getDatabase().createStatement();

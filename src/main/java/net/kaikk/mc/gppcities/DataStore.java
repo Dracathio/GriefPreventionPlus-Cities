@@ -255,7 +255,7 @@ public class DataStore {
 	 * Note that this DOES NOT check if a city with the same ID already exists. (if it exists, it will throw an SQLException)
 	 * @return an error message, empty otherwise.
 	 * */
-	public synchronized String newCity(Claim claim, String name, UUID mayor, Location loc) {
+	public String newCity(Claim claim, String name, UUID mayor, Location loc) {
 		if (name == "") {
 			return Messages.CityNameInvalid.get();
 		}
@@ -296,7 +296,7 @@ public class DataStore {
 	}
 	
 	/** delete a city */
-	public synchronized String deleteCity(City city) {
+	public String deleteCity(City city) {
 		try {
 			this.dbCheck();
 			Statement statement = database.createStatement();
@@ -368,7 +368,7 @@ public class DataStore {
 	
 
 	
-	synchronized void dbCheck() throws SQLException {
+	void dbCheck() throws SQLException {
 		if(this.database == null || this.database.isClosed()) {
 			Properties connectionProps = new Properties();
 			connectionProps.put("user", this.username);
@@ -378,7 +378,7 @@ public class DataStore {
 		}
 	}
 	
-	synchronized void dbClose()  {
+	void dbClose()  {
 		try {
 			if (!this.database.isClosed()) {
 				this.database.close();
