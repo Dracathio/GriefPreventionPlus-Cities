@@ -393,7 +393,7 @@ class CommandExec implements CommandExecutor {
 					return true;
 				}
 				
-				String motd=DataStore.mergeStringArrayFromIndex(args, 2);
+				String motd=Utils.mergeStringArrayFromIndex(args, 2);
 				
 				if (args[1].equalsIgnoreCase("res") || args[1].equalsIgnoreCase("out")) {
 					city.setMotd(motd, args[1].equalsIgnoreCase("res"));
@@ -850,7 +850,7 @@ class CommandExec implements CommandExecutor {
 								return false;
 							}
 							
-							String motd=DataStore.mergeStringArrayFromIndex(args, 2);
+							String motd=Utils.mergeStringArrayFromIndex(args, 2);
 							if (motd==null) {
 								motd="";
 							}
@@ -1006,7 +1006,7 @@ class CommandExec implements CommandExecutor {
 				return true;
 			}
 			
-			String message=DataStore.mergeStringArrayFromIndex(args, 0);
+			String message=Utils.mergeStringArrayFromIndex(args, 0);
 			String cMessage=Messages.CityChatFormat.get(city.getName(), player.getDisplayName(), message);
 			
 			CityChatEvent event = new CityChatEvent(city, player, cMessage);

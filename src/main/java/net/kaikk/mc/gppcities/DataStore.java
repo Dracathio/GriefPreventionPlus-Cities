@@ -436,22 +436,6 @@ public class DataStore {
 		}
 	}
 	
-	
-	/** This static method will merge an array of strings from a specific index 
-	 * @return null if arrayString.length < i*/
-	static String mergeStringArrayFromIndex(String[] arrayString, int i) { // FIXME this shit
-		if (i<arrayString.length){
-			String string=arrayString[i];
-			i++;
-			for(;i<arrayString.length;i++){
-				string=string+" "+arrayString[i];
-			}
-			return string;
-		}
-		return null;
-	}
-	
-	
 	/** log into console */
 	private void log(Level level, String msg) {
 		instance.getLogger().log(level, msg);
