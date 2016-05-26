@@ -37,6 +37,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.kaikk.mc.gpp.Claim;
 import net.kaikk.mc.gpp.GriefPreventionPlus;
 import net.kaikk.mc.gppcities.City.Citizen;
+import net.kaikk.mc.gppcities.City.CitySizeComparator;
 import net.kaikk.mc.gppcities.City.Plot;
 
 class CommandExec implements CommandExecutor {
@@ -470,7 +471,7 @@ class CommandExec implements CommandExecutor {
 					player.sendMessage(Messages.CitizensList.get(city.getName()));
 					
 					ArrayList<Citizen> citizens = new ArrayList<Citizen>(city.getCitizens().values());
-					Collections.sort(citizens, city.new CitizenLastPlayedComparator());
+					Collections.sort(citizens, new City.CitizenLastPlayedComparator());
 					
 					for (Citizen citizen : citizens) {
 						player.sendMessage(Messages.CitizensListFormat.get(citizen.getDisplayName(), Long.toString((System.currentTimeMillis()-citizen.getLastPlayed())/86400000)));

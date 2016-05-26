@@ -78,7 +78,7 @@ public class City {
 	
 	// City methods
 	/** set the motd */
-	synchronized void setMotd(String motd, boolean resmotd) {
+	public synchronized void setMotd(String motd, boolean resmotd) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			
@@ -100,7 +100,7 @@ public class City {
 		}
 	}
 	
-	void setSpawn(Location loc) {
+	public void setSpawn(Location loc) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			Statement statement = GPPCities.getInstance().getDataStore().getDatabase().createStatement();
@@ -114,7 +114,7 @@ public class City {
 		}
 	}
 	
-	void rename(String newName) {
+	public void rename(String newName) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			Statement statement = GPPCities.getInstance().getDataStore().getDatabase().createStatement();
@@ -128,7 +128,7 @@ public class City {
 		}
 	}
 	
-	void changeOwner(UUID newMayor) {
+	public void changeOwner(UUID newMayor) {
 		Citizen citizen=this.getCitizen(newMayor);
 		if (citizen==null) {
 			return;
@@ -153,7 +153,7 @@ public class City {
 		}
 	}
 	
-	String info() {
+	public String info() {
 		String[] citizensList=this.citizensList();
 		OfflinePlayer mayor=GPPCities.getInstance().getServer().getOfflinePlayer(this.getMayor().getId());
 		String mayorName;
@@ -166,11 +166,11 @@ public class City {
 		return Messages.CityInfo.get(this.name, Integer.toString(this.claim.getID()), Integer.toString(this.claim.getArea()), Integer.toString(this.plots.size()), this.creationDate(), mayorName, Integer.toString(this.citizens.size()), citizensList[0], citizensList[1]);
 	}
 	
-	String creationDate() {
+	public String creationDate() {
 		return DateFormat.getDateTimeInstance().format(this.creationDate);
 	}
 	
-	void addBan(UUID id) {
+	public void addBan(UUID id) {
 		if (this.bannedPlayers.contains(id)) {
 			return;
 		}
@@ -195,7 +195,7 @@ public class City {
 		}
 	}
 	
-	void unban(UUID id) {
+	public void unban(UUID id) {
 		this.bannedPlayers.remove(id);
 		
 		try {
@@ -214,33 +214,33 @@ public class City {
 	}
 	
 	
-	void setPerm(CitizenPermission cPerm) {
+	public void setPerm(CitizenPermission cPerm) {
 		this.setPerm(cPerm.perm);
 	}
 	
-	void setPerm(int perm) {
+	public void setPerm(int perm) {
 		this.defaultPerms=this.defaultPerms|perm;
 		this.dbUpdatePerm();
 	}
 	
-	void unsetPerm(CitizenPermission cPerm) {
+	public void unsetPerm(CitizenPermission cPerm) {
 		this.unsetPerm(cPerm.perm);
 	}
 	
-	void unsetPerm(int perm) {
+	public void unsetPerm(int perm) {
 		this.defaultPerms=this.defaultPerms&(~perm);
 		this.dbUpdatePerm();
 	}
 	
-	boolean checkPerm(CitizenPermission cPerm) {
+	public boolean checkPerm(CitizenPermission cPerm) {
 		return (this.defaultPerms&cPerm.perm)!=0;
 	}
 	
-	boolean checkPerm(int perm) {
+	public boolean checkPerm(int perm) {
 		return (this.defaultPerms&perm)!=0;
 	}
 	
-	String permsToString() {
+	public String permsToString() {
 		String perms = "";
 		if (checkPerm(CitizenPermission.Assistant)) {
 			return "A";
@@ -264,7 +264,7 @@ public class City {
 		return perms;
 	}
 	
-	void dbUpdatePerm() {
+	public void dbUpdatePerm() {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			
@@ -277,7 +277,7 @@ public class City {
 		}
 	}
 	
-	boolean isValid() {
+	public boolean isValid() {
 		if (this.citizens.size()==0) {
 			return false;
 		}
@@ -347,7 +347,7 @@ public class City {
 		}
 	}
 	
-	void sendMessageToAllCitizens(String message) {
+	public void sendMessageToAllCitizens(String message) {
 		Player player;
 		for (Citizen citizen : this.citizens.values()) {
 			if ((player=citizen.getPlayer()) != null) {
@@ -358,11 +358,11 @@ public class City {
 	
 	/** get the citizen 
 	 * @return the citizen, null if it doesn't exist*/
-	Citizen getCitizen(UUID id) {
+	public Citizen getCitizen(UUID id) {
 		return this.citizens.get(id);
 	}
 	
-	Citizen getCitizen(String name) {
+	public Citizen getCitizen(String name) {
 		for (Citizen citizen : this.citizens.values()) {
 			if (citizen.getOfflinePlayer().getName().equalsIgnoreCase(name)) {
 				return citizen;
@@ -371,7 +371,7 @@ public class City {
 		return null;
 	}
 	
-	Citizen getMayor() {
+	public Citizen getMayor() {
 		for (Citizen citizen : this.citizens.values()) {
 			if ((citizen.getPerms()&1)!=0) {
 				return citizen;
@@ -380,7 +380,7 @@ public class City {
 		return null;
 	}
 	
-	void removeCitizen(UUID id) {
+	public void removeCitizen(UUID id) {
 		for (Plot plot : this.plots.values()) {
 			if (plot.getCitizen()!=null && plot.getCitizen().getId()==id) {
 				plot.unassign();
@@ -411,7 +411,7 @@ public class City {
 		}
 	}
 	
-	String[] citizensList() {
+	public String[] citizensList() {
 		String[] onList = new String[this.citizens.size()];
 		String[] offList = new String[this.citizens.size()];
 
@@ -463,7 +463,7 @@ public class City {
 		return new String[]{onListString, offListString};
 	}
 	
-	boolean citizenHasAssignedPlot(Citizen citizen) {
+	public boolean citizenHasAssignedPlot(Citizen citizen) {
 		for (Plot plot : this.plots.values()) {
 			if (plot.getCitizen() == citizen) {
 				return true;
@@ -477,7 +477,7 @@ public class City {
 	
 	/** Create a plot (without any assignment) 
 	 * @return the created plot, null otherwise */
-	synchronized Plot newPlot(Claim claim) {
+	public synchronized Plot newPlot(Claim claim) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			Statement statement = GPPCities.getInstance().getDataStore().getDatabase().createStatement();
@@ -498,7 +498,7 @@ public class City {
 	/** Assign a plot (creates a new plot if it doesn't exist)
 	 * @return boolean true if the plot was assigned
 	 * */
-	synchronized boolean assignPlot(Claim claim, Citizen citizen) {
+	public synchronized boolean assignPlot(Claim claim, Citizen citizen) {
 		Plot plot = this.getPlot(claim);
 		if (plot == null) {
 			plot = this.newPlot(claim);
@@ -524,7 +524,7 @@ public class City {
 		}
 	}
 	
-	synchronized void deletePlot(Plot plot) {
+	public synchronized void deletePlot(Plot plot) {
 		try {
 			GPPCities.getInstance().getDataStore().dbCheck();
 			Statement statement = GPPCities.getInstance().getDataStore().getDatabase().createStatement();
@@ -538,7 +538,7 @@ public class City {
 		}
 	}
 
-	Plot getPlot(Claim claim) {
+	public Plot getPlot(Claim claim) {
 		for (Plot plot: this.plots.values()) {
 			if (plot.getClaim() == claim) {
 				return plot; 
@@ -547,7 +547,7 @@ public class City {
 		return null;
 	}
 	
-	void playerEnterMessage(Player player) {
+	public void playerEnterMessage(Player player) {
 		if (this.getCitizen(player.getUniqueId())!=null) {
 			player.sendMessage(Messages.WelcomeBackTo.get(this.name));
 			if (this.motdRes!=null && !this.motdRes.isEmpty()) {
@@ -570,7 +570,7 @@ public class City {
 		}
 	}
 	
-	Citizen getOldestAssistant() {
+	public Citizen getOldestAssistant() {
 		Citizen oldest=null;
 		for (Citizen citizen : this.citizens.values()) {
 			if (citizen.checkPerm(CitizenPermission.Assistant)) {
@@ -583,7 +583,7 @@ public class City {
 		return oldest;
 	}
 	
-	Citizen getOldestCitizen() {
+	public Citizen getOldestCitizen() {
 		Citizen oldest=null;
 		for (Citizen citizen : this.citizens.values()) {
 			if (oldest==null || oldest.getJoinedOn().getTime()>citizen.getJoinedOn().getTime()) {
@@ -594,7 +594,7 @@ public class City {
 		return oldest;
 	}
 	
-	static int parsePerms(String perms) {
+	public static int parsePerms(String perms) {
 		int perm=0;
 		for (char ch : perms.toLowerCase().toCharArray()) {
 			switch (ch) {
@@ -707,7 +707,7 @@ public class City {
 	}
 	
 	/** Returns true if this city should be removed because this city is empty. */
-	boolean handleInactiveCitizens() {
+	public boolean handleInactiveCitizens() {
 		if (this.getCitizens().size()==0) {
 			return true;
 		}
@@ -781,7 +781,7 @@ public class City {
 		}
 		
 		/** assign this plot to a citizen */
-		void assign(Citizen citizen) {
+		public void assign(Citizen citizen) {
 			try {
 				GPPCities.getInstance().getDataStore().dbCheck();
 				
@@ -818,7 +818,7 @@ public class City {
 			}
 		}
 		
-		void unassign() {
+		public void unassign() {
 			try {
 				GPPCities.getInstance().getDataStore().dbCheck();
 				
@@ -842,7 +842,7 @@ public class City {
 			}
 		}
 		
-		void motd(String motd) {
+		public void motd(String motd) {
 			try {
 				GPPCities.getInstance().getDataStore().dbCheck();
 				
@@ -857,7 +857,7 @@ public class City {
 			}
 		}
 		
-		void takeable(boolean sw) {
+		public void takeable(boolean sw) {
 			try {
 				GPPCities.getInstance().getDataStore().dbCheck();
 				
@@ -873,7 +873,7 @@ public class City {
 			}
 		}
 		
-		void playerEnterMessage(Player player) {
+		public void playerEnterMessage(Player player) {
 			if (this.citizen != null) {
 				player.sendMessage(Messages.YouOnPlot.get(this.citizen.getDisplayName()));
 			} else {
@@ -954,19 +954,19 @@ public class City {
 			this.joinedOn=joinedOn;
 		}
 		
-		long getLastPlayed() {
+		public long getLastPlayed() {
 			return GPPCities.getInstance().getServer().getOfflinePlayer(this.id).getLastPlayed();
 		}
 		
-		int getLastPlayedDays() {
+		public int getLastPlayedDays() {
 			return (int) ((System.currentTimeMillis()-this.getLastPlayed())/86400000);
 		}
 		/** returns citizen's name */
-		String getName() {
+		public String getName() {
 			return this.getOfflinePlayer().getName();
 		}
 		/** returns citizen's display name, or the name if he's not online */
-		String getDisplayName() {
+		public String getDisplayName() {
 			OfflinePlayer citizen = this.getOfflinePlayer();
 			if (citizen.isOnline()) {
 				return citizen.getPlayer().getDisplayName();
@@ -975,7 +975,7 @@ public class City {
 			}
 		}
 
-		String permsToString() {
+		public String permsToString() {
 			String perms = "";
 			if (checkPerm(CitizenPermission.Assistant)) {
 				return "A";
@@ -999,11 +999,11 @@ public class City {
 			return perms;
 		}
 
-		void setPerm(CitizenPermission cPerm) {
+		public void setPerm(CitizenPermission cPerm) {
 			this.setPerm(cPerm.perm);
 		}
 		
-		void setPerm(int perm) {
+		public void setPerm(int perm) {
 			if (perm < 3) {
 				this.perms=perm;
 			} else {
@@ -1012,20 +1012,20 @@ public class City {
 			this.dbUpdatePerm();
 		}
 		
-		void unsetPerm(CitizenPermission cPerm) {
+		public void unsetPerm(CitizenPermission cPerm) {
 			this.unsetPerm(cPerm.perm);
 		}
 		
-		void unsetPerm(int perm) {
+		public void unsetPerm(int perm) {
 			this.perms=this.perms&(~perm);
 			this.dbUpdatePerm();
 		}
 		
-		boolean checkPerm(CitizenPermission cPerm) {
+		public boolean checkPerm(CitizenPermission cPerm) {
 			return (this.perms&cPerm.perm)!=0;
 		}
 		
-		boolean checkPerm(int perm) {
+		public boolean checkPerm(int perm) {
 			return (this.perms&perm)!=0;
 		}
 		
@@ -1042,11 +1042,11 @@ public class City {
 			}
 		}
 		
-		OfflinePlayer getOfflinePlayer() {
+		public OfflinePlayer getOfflinePlayer() {
 			return GPPCities.getInstance().getServer().getOfflinePlayer(this.id);
 		}
 		
-		Player getPlayer() {
+		public Player getPlayer() {
 			return GPPCities.getInstance().getServer().getPlayer(this.id);
 		}
 
@@ -1076,7 +1076,7 @@ public class City {
 	}
 
 
-	class CitizenNameComparator implements Comparator<Citizen> {
+	public static class CitizenNameComparator implements Comparator<Citizen> {
 		@Override
 		public int compare(Citizen c1, Citizen c2) {
 			return c1.getName().compareTo(c2.getName());
@@ -1084,38 +1084,39 @@ public class City {
 	}
 
 	/** From the most recent played.*/
-	class CitizenLastPlayedComparator implements Comparator<Citizen> {
+	public static class CitizenLastPlayedComparator implements Comparator<Citizen> {
 		@Override
 		public int compare(Citizen c1, Citizen c2) {
 			return (int) ((c2.getLastPlayed()-c1.getLastPlayed())/1000);
 		}
 	}
 
-	class CitizenJoinedOnComparator implements Comparator<Citizen> {
+	public class CitizenJoinedOnComparator implements Comparator<Citizen> {
 		@Override
 		public int compare(Citizen c1, Citizen c2) {
 			return (int) ((c1.getJoinedOn().getTime()-c2.getJoinedOn().getTime())/1000);
 		}
 	}
-}
+	
+	public static class CitySizeComparator implements Comparator<City> {
+		@Override
+		public int compare(City city1, City city2) {
+			return city1.getCitizens().size()-city2.getCitizens().size();
+		}
+	}
 
-class CitySizeComparator implements Comparator<City> {
-	@Override
-	public int compare(City city1, City city2) {
-		return city1.getCitizens().size()-city2.getCitizens().size();
+	public static class CityAreaComparator implements Comparator<City> {
+		@Override
+		public int compare(City city1, City city2) {
+			return city1.getClaim().getArea()-city2.getClaim().getArea();
+		}
+	}
+
+	public static class CityNameComparator implements Comparator<City> {
+		@Override
+		public int compare(City city1, City city2) {
+			return city1.getName().compareTo(city2.getName());
+		}
 	}
 }
 
-class CityAreaComparator implements Comparator<City> {
-	@Override
-	public int compare(City city1, City city2) {
-		return city1.getClaim().getArea()-city2.getClaim().getArea();
-	}
-}
-
-class CityNameComparator implements Comparator<City> {
-	@Override
-	public int compare(City city1, City city2) {
-		return city1.getName().compareTo(city2.getName());
-	}
-}

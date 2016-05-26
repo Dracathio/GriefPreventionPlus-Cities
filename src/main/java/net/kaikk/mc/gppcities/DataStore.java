@@ -40,7 +40,7 @@ import net.kaikk.mc.gpp.ClaimPermission;
 import net.kaikk.mc.gpp.GriefPreventionPlus;
 import net.kaikk.mc.gppcities.City.Citizen;
 
-class DataStore {
+public class DataStore {
 	GPPCities instance;
 	
 	private String dbUrl;
@@ -255,7 +255,7 @@ class DataStore {
 	 * Note that this DOES NOT check if a city with the same ID already exists. (if it exists, it will throw an SQLException)
 	 * @return an error message, empty otherwise.
 	 * */
-	synchronized String newCity(Claim claim, String name, UUID mayor, Location loc) {
+	public synchronized String newCity(Claim claim, String name, UUID mayor, Location loc) {
 		if (name == "") {
 			return Messages.CityNameInvalid.get();
 		}
@@ -296,7 +296,7 @@ class DataStore {
 	}
 	
 	/** delete a city */
-	synchronized String deleteCity(City city) {
+	public synchronized String deleteCity(City city) {
 		try {
 			this.dbCheck();
 			Statement statement = database.createStatement();
@@ -331,7 +331,7 @@ class DataStore {
 	
 	/** get the city for this player
 	 * @return the citizen's city, null otherwise*/
-	City getCity(UUID id) {
+	public City getCity(UUID id) {
 		for (City city : this.citiesMap.values()) {
 			if (city.getCitizens().containsKey(id)) {
 				return city;
@@ -343,7 +343,7 @@ class DataStore {
 	/** Get the city by name (ignores case)
 	 * @return the city, null otherwise
 	 * */
-	City getCity(String name) {
+	public City getCity(String name) {
 		for (City city : this.citiesMap.values()) {
 			if (city.getName().equalsIgnoreCase(name)) {
 				if (!city.isValid()) {
@@ -358,11 +358,11 @@ class DataStore {
 		return null;
 	}
 	
-	City getCity(Claim claim) {
+	public City getCity(Claim claim) {
 		return this.getCity(claim.getParent()!=null?claim.getParent().getID():claim.getID());
 	}
 	
-	City getCity(int id) {
+	public City getCity(int id) {
 		return this.citiesMap.get(id);
 	}
 	
@@ -439,7 +439,7 @@ class DataStore {
 	
 	/** This static method will merge an array of strings from a specific index 
 	 * @return null if arrayString.length < i*/
-	static String mergeStringArrayFromIndex(String[] arrayString, int i) {
+	static String mergeStringArrayFromIndex(String[] arrayString, int i) { // FIXME this shit
 		if (i<arrayString.length){
 			String string=arrayString[i];
 			i++;
